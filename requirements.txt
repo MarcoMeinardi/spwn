@@ -1,0 +1,4 @@
+pwntools
+requests
+pytest-shutil
+python-libarchive
