@@ -12,3 +12,5 @@ chmod +x spwn.py
 sudo cp spwn.py /usr/bin/spwn
 ```
 If you get errors with libarchive try following [this](https://stackoverflow.com/questions/29225812/libarchive-public-error-even-after-installing-libarchive-in-python) stackoverflow post.
+
+You should modify the last line of `spwn.py` (`os.system("subl a.py")`) to launch the text editor you want to use to write the exploit (in my case sublime text).
