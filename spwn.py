@@ -1,4 +1,5 @@
-from pwn import *
+#!/bin/python
+import pwnlib.libcdb
 import os
 import platform
 import re
@@ -8,7 +9,40 @@ import libarchive.public
 import tarfile
 import shutil
 
+
 debug_dir = "debug"
+
+# 0: binary
+# 1: original libc
+# 2: debug directory
+base_script = \
+'''from pwn import *
+context.binary = "./{0}"
+exe = ELF("./{0}", checksec = False)
+libc = ELF("./{1}", checksec = False)
+
+if args.REMOTE:
+	r = connect("")
+elif args.GDB:
+	r = gdb.debug("./{2}/{0}", """
+		c
+	""", aslr = False)
+elif args.ORIGINAL:
+	r = process("./{0}", env = {{"LD_PRELOAD": "./{1}"}})
+else:
+	r = process("./{2}/{0}")
+
+
+
+
+r.interactive()
+'''
+
+def create_script(binary, libc):
+	global debug_dir
+	script = base_script.format(binary, libc, debug_dir)
+	with open("./a.py", "w") as f:
+		f.write(script)
 
 def find_binaries():
 	files = os.listdir()
@@ -24,16 +58,18 @@ def find_binaries():
 			binary = file
 
 	if binary is None:
-		log.error("Binary not found")
+		print("[ERROR] Binary not found")
+		quit()
 	if libc is None:
-		log.error("libc not found")
+		print("[ERROR] libc not found")
+		quit()
 
 	return binary, libc, loader
 
 def basic_info(binary):
-	log.info(f"file ./{binary}")
+	print(f"[*] file ./{binary}")
 	os.system(f"file ./{binary}")
-	log.info(f"pwn checksec ./{binary}")
+	print(f"[*] pwn checksec ./{binary}")
 	os.system(f"pwn checksec ./{binary}")
 
 def get_architecture(binary):
@@ -51,9 +87,8 @@ def get_libc_version(libc):
 
 def create_debug_directory():
 	global debug_dir
-	log.info("Creating debug directory")
 	while os.path.exists(f"./{debug_dir}"):
-		log.warning(f"\"{debug_dir}\" directory already exists, enter another name for the debug directory or press enter")
+		print(f"[!] \"{debug_dir}\" directory already exists, enter another name for the debug directory or press enter")
 		inp = input("> ").strip()
 		if not inp:
 			return
@@ -63,23 +98,21 @@ def create_debug_directory():
 
 def copy_binary(binary):
 	shutil.copyfile(f"./{binary}", f"./{debug_dir}/{binary}")
-	return binary
 
-def download_package(libc_version, architecture):
+def get_loader(libc_version, architecture):
 	global debug_dir
 
-	package_name = f"libc6-dbg_{libc_version}_{architecture}.deb"
+	package_name = f"libc6_{libc_version}_{architecture}.deb"
 	package_url = "https://launchpad.net/ubuntu/+archive/primary/+files/" + package_name
 
-	log.info("Fetching debug package")
 	r = requests.get(package_url)
 	if r.status_code != 200:
-		log.error(f"Cannot get debug package from {package_url} (error {r.status_code})")
+		print(f"[ERROR] Cannot get debug package from {package_url} (error {r.status_code})")
+		quit()
 
 	with open(f"{debug_dir}/{package_name}", "wb") as f:
 		f.write(r.content)
 
-	log.info("Extracting data archive")
 	sub_archive_name = "data.tar.xz"
 
 	with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
@@ -92,55 +125,34 @@ def download_package(libc_version, architecture):
 
 	os.remove(f"{debug_dir}/{package_name}")
 
-
-def get_loader(libc_version, architecture):
-	global debug_dir
-	log.info("Extracting debug loader")
-	archive_name = "data.tar.xz"
 	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
-	loader_name = f"ld-{libc_number}.so"
-	data_archive = tarfile.open(f"{debug_dir}/{archive_name}", "r")
+	debug_loader_name = f"ld-{libc_number}.so"
+	data_archive = tarfile.open(f"{debug_dir}/{sub_archive_name}", "r")
 
 	for file_name in data_archive.getnames():
-		if loader_name in file_name:
+		if debug_loader_name in file_name:
 			loader = data_archive.extractfile(file_name)
 			break
 
-	with open(f"{debug_dir}/{loader_name}", "wb") as f:
+	with open(f"{debug_dir}/ld-linux.so.2", "wb") as f:
 		f.write(loader.read())
 
-	return loader_name
+	os.remove(f"{debug_dir}/{sub_archive_name}")
 
-def get_debug_libc(libc_version, architecture):
+def get_debug_libc(libc, libc_version, architecture):
 	global debug_dir
-	log.info("Extracting debug libc")
-	archive_name = "data.tar.xz"
-	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
-	debug_libc_name = f"libc-{libc_number}.so"
-	data_archive = tarfile.open(f"{debug_dir}/{archive_name}", "r")
-
-	for file_name in data_archive.getnames():
-		if debug_libc_name in file_name:
-			loader = data_archive.extractfile(file_name)
-			break
-
-	with open(f"{debug_dir}/{debug_libc_name}", "wb") as f:
-		f.write(loader.read())
-
-	return debug_libc_name
-
-def remove_debug_archive():
-	global debug_dir
-	os.remove(f"{debug_dir}/data.tar.xz")
+	shutil.copyfile(libc, f"{debug_dir}/libc.so.6")
+	# pwnlib.libcdb.unstrip_libc(f"{debug_dir}/libc.so.6") # wait for it to be added to the pip archive
 
 def set_executable(*args):
 	global debug_dir
 	for file_name in args:
-		os.chmod(f"{debug_dir}/{file_name}", 0o777)
+		os.chmod(file_name, 0o777)
 
 def set_runpath(binary):
 	global debug_dir
 	os.system(f"patchelf {debug_dir}/{binary} --set-rpath ./{debug_dir}/")
+
 
 binary, libc, loader = find_binaries()
 basic_info(binary)
@@ -148,11 +160,16 @@ architecture = get_architecture(libc)
 libc_version = get_libc_version(libc)
 
 create_debug_directory()
-debug_binary = copy_binary(binary)
-download_package(libc_version, architecture)
-debug_loader = get_loader(libc_version, architecture)
-debug_libc = get_debug_libc(libc_version, architecture)
-remove_debug_archive()
+copy_binary(binary)
+get_loader(libc_version, architecture)
+get_debug_libc(libc, libc_version, architecture)
 
-set_executable(debug_binary, debug_libc, debug_loader)
-set_runpath(debug_binary)
+set_executable(
+	f"./{debug_dir}/{binary}",
+	f"./{debug_dir}/ld-linux.so.2",
+	f"./{binary}"
+)
+set_runpath(binary)
+
+create_script(binary, libc)
+os.system("subl a.py")
