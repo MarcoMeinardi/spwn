@@ -8,6 +8,7 @@ It has been created because I love the utilities provided by pwninit, but I'm to
 sudo apt install elfutils
 sudo apt install binutils
 sudo apt install patchelf
+gem install seccomp-tools
 pip install -r requirementes.txt
 chmod +x spwn.py
 sudo cp spwn.py /usr/bin/spwn
