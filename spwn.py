@@ -76,6 +76,62 @@ def create_script(binary, libc):
 	with open(f"./{exploit_name}", "w") as f:
 		f.write(script)
 
+def manual_selection(files):
+	files = [file for file in files if platform.architecture(file)[1] == "ELF"]
+	if not files:
+		print("[ERROR] No ELF found")
+		quit()
+
+	binary, libc, loader = None, None, None
+	print("[*] Enter binary")
+	for i, file_name in enumerate(files):
+		print(f"{i}: {file_name}")
+	while binary is None:
+		try:
+			index = int(input("> ").strip())
+			binary = files[index]
+		except KeyboardInterrupt:
+			quit()
+		except:
+			print("[!] Invalid index")
+
+	files.remove(binary)
+	if not files:
+		return binary, None, None
+	print("[*] Enter libc or press enter if there isn't")
+	for i, file_name in enumerate(files):
+		print(f"{i}: {file_name}")
+	while libc is None:
+		try:
+			inp = input("> ").strip()
+			if not inp: break
+			index = int(inp)
+			libc = files[index]
+		except KeyboardInterrupt:
+			quit()
+		except:
+			print("[!] Invalid index")
+	
+	if libc is not None:
+		files.remove(libc)
+		if not files:
+			return binary, libc, None
+		print("[*] Enter loader or press enter if there isn't")
+		for i, file_name in enumerate(files):
+			print(f"{i}: {file_name}")
+		while loader is None:
+			try:
+				inp = input("> ").strip()
+				if not inp: break
+				index = int(inp)
+				loader = files[index]
+			except KeyboardInterrupt:
+				quit()
+			except:
+				print("[!] Invalid index")
+
+	return binary, libc, loader
+
 def find_files():
 	files = os.listdir()
 	libc = None
@@ -92,8 +148,8 @@ def find_files():
 			binaries.append(file_name)
 
 	if len(binaries) == 0:
-		print("[ERROR] Binary not found")
-		quit()
+		print("[!] Binary not found, continuing with manual selection")
+		return manual_selection(files)
 
 	if len(binaries) == 1:
 		binary = binaries[0]
@@ -103,7 +159,7 @@ def find_files():
 			print(f"{i}: {file_name}")
 		while True:
 			try:
-				index = int(input("> "))
+				index = int(input("> ").strip())
 				binary = binaries[index]
 				break
 			except KeyboardInterrupt:
@@ -145,7 +201,7 @@ def find_possible_vulnerabilities(exe):
 	if found:
 		print("[*] There are some risky functions")
 		for function in found:
-			print(found)
+			print(*found)
 
 def create_debug_directory():
 	global debug_dir
