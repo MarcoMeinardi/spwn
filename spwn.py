@@ -20,6 +20,7 @@ debug_dir = "debug"
 script_prefix = \
 '''from pwn import *
 context.binary= "./{0}"
+exe = ELF("./{0}", checksec = False)
 '''
 base_script_libc = \
 '''
@@ -62,6 +63,7 @@ def create_script(binary, libc):
 		script += base_script_no_libc
 		script = script.format(binary)
 	else:
+		script += 'libc = ELF("./{2}/{1}", checksec = False)\n'
 		script += base_script_libc
 		script = script.format(binary, libc, debug_dir)
 		
@@ -70,11 +72,12 @@ def create_script(binary, libc):
 		print(f"[!] \"{exploit_name}\" already exists, type in a new name or press enter to overwrite it")
 		inp = input("> ").strip()
 		if not inp:
-			return
+			break
 		exploit_name = inp
 
 	with open(f"./{exploit_name}", "w") as f:
 		f.write(script)
+	return exploit_name
 
 def manual_selection(files):
 	files = [file for file in files if platform.architecture(file)[1] == "ELF"]
@@ -199,9 +202,8 @@ def find_possible_vulnerabilities(exe):
 			found.append(function)
 	
 	if found:
-		print("[*] There are some risky functions")
-		for function in found:
-			print(*found)
+		print("[*] There are some risky functions:")
+		print(*found)
 
 def create_debug_directory():
 	global debug_dir
@@ -339,12 +341,13 @@ if libc:
 		f"./{binary}"
 	)
 	set_runpath(binary)
+	check_seccomp(f"{debug_dir}/{binary}", exe)
 else:
 	basic_info(binary)
 	find_possible_vulnerabilities(exe)
 	set_executable(f"./{binary}")
+	check_seccomp(binary, exe)
 
-check_seccomp(f"{debug_dir}/{binary}", exe)
 
-create_script(binary, libc)
-os.system("subl a.py")
+exploit_name = create_script(binary, libc)
+os.system(f"subl {exploit_name}")
