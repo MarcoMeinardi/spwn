@@ -17,12 +17,12 @@ debug_dir = "debug"
 # 0: binary
 # 1: original libc
 # 2: debug directory
-base_script = \
+script_prefix = \
 '''from pwn import *
-context.binary = "./{0}"
-exe = ELF("./{0}", checksec = False)
-libc = ELF("./{2}/libc.so.6", checksec = False)
-
+context.binary= "./{0}"
+'''
+base_script_libc = \
+'''
 if args.REMOTE:
 	r = connect("")
 elif args.GDB:
@@ -39,9 +39,32 @@ else:
 
 r.interactive()
 '''
+base_script_no_libc = \
+'''
+if args.REMOTE:
+	r = connect("")
+elif args.GDB:
+	r = gdb.debug("./{0}", """
+		c
+	""", aslr = False)
+else:
+	r = process("./{0}")
+
+
+
+
+r.interactive()
+'''
 
 def create_script(binary, libc):
-	script = base_script.format(binary, libc, debug_dir)
+	script = script_prefix
+	if libc is None:
+		script += base_script_no_libc
+		script = script.format(binary)
+	else:
+		script += base_script_libc
+		script = script.format(binary, libc, debug_dir)
+		
 	exploit_name = "a.py"
 	while os.path.exists(f"./{exploit_name}"):
 		print(f"[!] \"{exploit_name}\" already exists, type in a new name or press enter to overwrite it")
@@ -53,7 +76,7 @@ def create_script(binary, libc):
 	with open(f"./{exploit_name}", "w") as f:
 		f.write(script)
 
-def find_binaries():
+def find_files():
 	files = os.listdir()
 	libc = None
 	loader = None
@@ -70,9 +93,6 @@ def find_binaries():
 
 	if len(binaries) == 0:
 		print("[ERROR] Binary not found")
-		quit()
-	if libc is None:
-		print("[ERROR] libc not found")
 		quit()
 
 	if len(binaries) == 1:
@@ -106,13 +126,14 @@ def get_libc_version(libc):
 		version = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read()).group(0)
 	return version
 
-def basic_info(binary, libc_version):
+def basic_info(binary, libc_version = None):
 	print(f"[*] file ./{binary}")
 	os.system(f"file ./{binary}")
 	print(f"[*] pwn checksec ./{binary}")
 	os.system(f"pwn checksec ./{binary}")
-	libc_number = re.search(r"\d\.\d+", libc_version).group(0)
-	print(f"[*] libc {libc_number}")
+	if libc_version:
+		libc_number = re.search(r"\d\.\d+", libc_version).group(0)
+		print(f"[*] libc {libc_number}")
 
 def find_possible_vulnerabilities(exe):
 	maybe_vulnerable = ["gets", "__isoc99_scanf", "printf", "execve", "system"]
@@ -239,25 +260,34 @@ def check_seccomp(binary, exe):
 	print(f"[*] timeout 1 seccomp-tools dump ./{binary}")
 	os.system(f"timeout 1 seccomp-tools dump ./{binary}")
 
-binary, libc, loader = find_binaries()
+binary, libc, loader = find_files()
 exe = ELF(binary, checksec = False)
-architecture = get_architecture(libc)
-libc_version = get_libc_version(libc)
-basic_info(binary, libc_version)
-find_possible_vulnerabilities(exe)
+if libc:
+	architecture = get_architecture(libc)
+	libc_version = get_libc_version(libc)
+	basic_info(binary, libc_version)
+	find_possible_vulnerabilities(exe)
 
-create_debug_directory()
-copy_binary(binary)
-get_loader(libc_version, architecture)
-get_debug_libc(libc, libc_version, architecture)
+	create_debug_directory()
+	copy_binary(binary)
+	if loader is None:
+		get_loader(libc_version, architecture)
+	else:
+		shutil.copyfile(loader, f"./{debug_dir}/{loader}")
+	get_debug_libc(libc, libc_version, architecture)
 
-set_executable(
-	f"./{debug_dir}/{binary}",
-	f"./{debug_dir}/libc.so.6",
-	f"./{debug_dir}/ld-linux.so.2",
-	f"./{binary}"
-)
-set_runpath(binary)
+	set_executable(
+		f"./{debug_dir}/{binary}",
+		f"./{debug_dir}/libc.so.6",
+		f"./{debug_dir}/ld-linux.so.2",
+		f"./{binary}"
+	)
+	set_runpath(binary)
+else:
+	basic_info(binary)
+	find_possible_vulnerabilities(exe)
+	set_executable(f"./{binary}")
+
 check_seccomp(f"{debug_dir}/{binary}", exe)
 
 create_script(binary, libc)
