@@ -1,9 +1,9 @@
 #!/usr/bin/python3
+from pwn import *
 import os, sys
 import platform
 import re
 import requests
-import tempfile
 import tarfile
 import shutil
 try:
@@ -103,7 +103,7 @@ def get_architecture(binary):
 
 def get_libc_version(libc):
 	with open(libc, "r", encoding = "latin-1") as f:
-		version = re.search(r"\d+\.\d+-\d+ubuntu\d+\.\d+", f.read()).group(0)
+		version = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read()).group(0)
 	return version
 
 def basic_info(binary, libc_version):
@@ -111,13 +111,25 @@ def basic_info(binary, libc_version):
 	os.system(f"file ./{binary}")
 	print(f"[*] pwn checksec ./{binary}")
 	os.system(f"pwn checksec ./{binary}")
-	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
+	libc_number = re.search(r"\d\.\d+", libc_version).group(0)
 	print(f"[*] libc {libc_number}")
+
+def find_possible_vulnerabilities(exe):
+	maybe_vulnerable = ["gets", "__isoc99_scanf", "printf", "execve", "system"]
+	found = []
+	for function in maybe_vulnerable:
+		if function in exe.symbols:
+			found.append(function)
+	
+	if found:
+		print("[*] There are some risky functions")
+		for function in found:
+			print(found)
 
 def create_debug_directory():
 	global debug_dir
 	while os.path.exists(f"./{debug_dir}"):
-		print(f"[!] \"{debug_dir}\" directory already exists, enter another name or press enter or to use it anyways")
+		print(f"[!] \"{debug_dir}\" directory already exists, type in a new name or press enter to use it anyways")
 		inp = input("> ").strip()
 		if not inp:
 			return
@@ -154,7 +166,7 @@ def get_loader(libc_version, architecture):
 		os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
-	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
+	libc_number = re.search(r"\d\.\d+", libc_version).group(0)
 	loader_name = f"ld-{libc_number}.so"
 	data_archive = tarfile.open(f"{debug_dir}/data.tar.xz", "r")
 
@@ -194,7 +206,7 @@ def get_debug_libc(libc, libc_version, architecture):
 		os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
-	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
+	libc_number = re.search(r"\d\.\d+", libc_version).group(0)
 	debug_libc_name = f"libc-{libc_number}.so"
 	data_archive = tarfile.open(f"{debug_dir}/data.tar.xz", "r")
 
@@ -216,10 +228,23 @@ def set_executable(*args):
 def set_runpath(binary):
 	os.system(f"patchelf {debug_dir}/{binary} --set-rpath ./{debug_dir}/ --set-interpreter ./{debug_dir}/ld-linux.so.2")
 
+def check_seccomp(binary, exe):
+	for symbol in exe.symbols:
+		if "seccomp" in symbol or "prctl" in symbol:
+			break
+	else:
+		return
+
+	print("[*] Possible seccomp detected")
+	print(f"[*] timeout 1 seccomp-tools dump ./{binary}")
+	os.system(f"timeout 1 seccomp-tools dump ./{binary}")
+
 binary, libc, loader = find_binaries()
+exe = ELF(binary, checksec = False)
 architecture = get_architecture(libc)
 libc_version = get_libc_version(libc)
 basic_info(binary, libc_version)
+find_possible_vulnerabilities(exe)
 
 create_debug_directory()
 copy_binary(binary)
@@ -233,6 +258,7 @@ set_executable(
 	f"./{binary}"
 )
 set_runpath(binary)
+check_seccomp(f"{debug_dir}/{binary}", exe)
 
 create_script(binary, libc)
 os.system("subl a.py")
