@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from pwn import *
 import os, sys
 import platform
@@ -57,13 +57,15 @@ else:
 r.interactive()
 '''
 
-def create_script(binary, libc):
+def create_script(binary, libc, gadgets):
 	script = script_prefix
 	if libc is None:
+		script += "\n" + gadgets
 		script += base_script_no_libc
 		script = script.format(binary)
 	else:
 		script += 'libc = ELF("./{2}/{1}", checksec = False)\n'
+		script += "\n" + gadgets
 		script += base_script_libc
 		script = script.format(binary, libc, debug_dir)
 		
@@ -182,7 +184,7 @@ def get_architecture(binary):
 
 def get_libc_version(libc):
 	with open(libc, "r", encoding = "latin-1") as f:
-		version = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read()).group(0)
+		version = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read()).group()
 	return version
 
 def basic_info(binary, libc_version = None):
@@ -191,7 +193,7 @@ def basic_info(binary, libc_version = None):
 	print(f"[*] pwn checksec ./{binary}")
 	os.system(f"pwn checksec ./{binary}")
 	if libc_version:
-		libc_number = re.search(r"\d\.\d+", libc_version).group(0)
+		libc_number = re.search(r"\d\.\d+", libc_version).group()
 		print(f"[*] libc {libc_number}")
 
 def find_possible_vulnerabilities(exe):
@@ -245,7 +247,7 @@ def get_loader(libc_version, architecture):
 		os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
-	libc_number = re.search(r"\d\.\d+", libc_version).group(0)
+	libc_number = re.search(r"\d\.\d+", libc_version).group()
 	loader_name = f"ld-{libc_number}.so"
 	data_archive = tarfile.open(f"{debug_dir}/data.tar.xz", "r")
 
@@ -285,7 +287,7 @@ def get_debug_libc(libc, libc_version, architecture):
 		os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
-	libc_number = re.search(r"\d\.\d+", libc_version).group(0)
+	libc_number = re.search(r"\d\.\d+", libc_version).group()
 	debug_libc_name = f"libc-{libc_number}.so"
 	data_archive = tarfile.open(f"{debug_dir}/data.tar.xz", "r")
 
@@ -318,7 +320,42 @@ def check_seccomp(binary, exe):
 	print(f"[*] timeout 1 seccomp-tools dump ./{binary}")
 	os.system(f"timeout 1 seccomp-tools dump ./{binary}")
 
+def get_rop_gadgets(binary, file_name):
+	os.system(f"ROPgadget --binary {binary} --multibr > {file_name}")
+	interesting_gadgets = [
+		r"0x[0-9a-fA-F]+ : pop [a-z0-9]{2,3} ; ret\n",
+		r"0x[0-9a-fA-F]+ : xchg [a-za-z0-9]{2,3}, [a-za-z0-9]{2,3} ; ret\n",
+		r"0x[0-9a-fA-F]+ : ret\n",
+		r"0x[0-9a-fA-F]+ : syscall ; ret\n",
+		r"0x[0-9a-fA-F]+ : syscall\n"
+	]
+
+	with open(file_name, "r") as f:
+		ropgadgets = f.read()
+	gadgets = ""
+	for interesting_gadget in interesting_gadgets:
+		ropgadgets_copy = ropgadgets
+		syscall_gadget = False
+		while gadget := re.search(interesting_gadget, ropgadgets_copy): # python regex sucks and doesn't match every case
+			ropgadgets_copy = ropgadgets_copy[gadget.span()[1]:]
+			gadget = gadget.group()
+			address, gadget_name = gadget.split(":")
+			gadget_name = gadget_name[1:-1].upper()
+			gadget_name = re.sub(r"( ; |, | )", "_", gadget_name)
+			if "libc" in file_name:
+				gadget_name = "LIBC_" + gadget_name
+			address = address[:-1]
+			gadgets += f"{gadget_name} = {address}\n"
+
+			if "syscall" in gadget: # avoid writing both syscall and syscall ret
+				syscall_gadget = True
+				break
+		if syscall_gadget: break
+	
+	return gadgets
+
 binary, libc, loader = find_files()
+rop = "rop" in sys.argv
 exe = ELF(binary, checksec = False)
 if libc:
 	architecture = get_architecture(libc)
@@ -342,12 +379,17 @@ if libc:
 	)
 	set_runpath(binary)
 	check_seccomp(f"{debug_dir}/{binary}", exe)
+	if rop:
+		binary_gadgets = get_rop_gadgets(binary, "gadgets")
+		libc_gadgets = get_rop_gadgets(libc, "libc-gadgets")
+	exploit_name = create_script(binary, libc, binary_gadgets + "\n" + libc_gadgets)
 else:
 	basic_info(binary)
 	find_possible_vulnerabilities(exe)
 	set_executable(f"./{binary}")
 	check_seccomp(binary, exe)
+	if rop:
+		binary_gadgets = get_rop_gadgets(binary, "gadgets")
+	exploit_name = create_script(binary, None, binary_gadgets)
 
-
-exploit_name = create_script(binary, libc)
 os.system(f"subl {exploit_name}")
