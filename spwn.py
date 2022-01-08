@@ -1,13 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os, sys
 import platform
 import re
 import requests
 import tempfile
-import libarchive.public
 import tarfile
 import shutil
-
+try:
+	import libarchive.public
+	has_libarchive = True
+except:
+	has_libarchive = False
 
 debug_dir = "debug"
 
@@ -18,7 +21,7 @@ base_script = \
 '''from pwn import *
 context.binary = "./{0}"
 exe = ELF("./{0}", checksec = False)
-libc = ELF("./{1}", checksec = False)
+libc = ELF("./{2}/libc.so.6", checksec = False)
 
 if args.REMOTE:
 	r = connect("")
@@ -39,7 +42,15 @@ r.interactive()
 
 def create_script(binary, libc):
 	script = base_script.format(binary, libc, debug_dir)
-	with open("./a.py", "w") as f:
+	exploit_name = "a.py"
+	while os.path.exists(f"./{exploit_name}"):
+		print(f"[!] \"{exploit_name}\" already exists, type in a new name or press enter to overwrite it")
+		inp = input("> ").strip()
+		if not inp:
+			return
+		exploit_name = inp
+
+	with open(f"./{exploit_name}", "w") as f:
 		f.write(script)
 
 def find_binaries():
@@ -48,13 +59,14 @@ def find_binaries():
 	loader = None
 	binaries = []
 	for file_name in files:
+		if platform.architecture(file_name)[1] != "ELF":
+			continue
 		if file_name.startswith("libc"):
 			libc = file_name
-		elif file_name.startswith("ld"):
+		elif file_name.startswith("ld.") or file_name.startswith("ld-"):
 			loader = file_name
 		else:
-			if not file_name.startswith(".") and not os.path.isdir(file_name):
-				binaries.append(file_name)
+			binaries.append(file_name)
 
 	if len(binaries) == 0:
 		print("[ERROR] Binary not found")
@@ -74,6 +86,8 @@ def find_binaries():
 				index = int(input("> "))
 				binary = binaries[index]
 				break
+			except KeyboardInterrupt:
+				quit()
 			except:
 				print("[!] Invalid index")
 
@@ -103,7 +117,7 @@ def basic_info(binary, libc_version):
 def create_debug_directory():
 	global debug_dir
 	while os.path.exists(f"./{debug_dir}"):
-		print(f"[!] \"{debug_dir}\" directory already exists, enter another name for the debug directory or press enter")
+		print(f"[!] \"{debug_dir}\" directory already exists, enter another name or press enter or to use it anyways")
 		inp = input("> ").strip()
 		if not inp:
 			return
@@ -114,7 +128,7 @@ def create_debug_directory():
 def copy_binary(binary):
 	shutil.copyfile(f"./{binary}", f"./{debug_dir}/{binary}")
 
-def get_debug_loader(libc_version, architecture):
+def get_loader(libc_version, architecture):
 	package_name = f"libc6_{libc_version}_{architecture}.deb"
 	package_url = "https://launchpad.net/ubuntu/+archive/primary/+files/" + package_name
 
@@ -126,14 +140,18 @@ def get_debug_loader(libc_version, architecture):
 	with open(f"{debug_dir}/{package_name}", "wb") as f:
 		f.write(r.content)
 
-	with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
-		for entry in archive:
-			if "data.tar.xz" in str(entry):
-				with open(f"{debug_dir}/data.tar.xz", "wb") as sub_archive:
-					for block in entry.get_blocks():
-						sub_archive.write(block)
-				break
-
+	if has_libarchive:
+		with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
+			for entry in archive:
+				if "data.tar.xz" in str(entry):
+					with open(f"{debug_dir}/data.tar.xz", "wb") as sub_archive:
+						for block in entry.get_blocks():
+							sub_archive.write(block)
+					break
+	else:
+		os.system(f"ar x {debug_dir}/{package_name} --output={debug_dir}")
+		os.remove(f"{debug_dir}/control.tar.xz")
+		os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
 	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
@@ -162,14 +180,18 @@ def get_debug_libc(libc, libc_version, architecture):
 	with open(f"{debug_dir}/{package_name}", "wb") as f:
 		f.write(r.content)
 
-	with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
-		for entry in archive:
-			if "data.tar.xz" in str(entry):
-				with open(f"{debug_dir}/data.tar.xz", "wb") as sub_archive:
-					for block in entry.get_blocks():
-						sub_archive.write(block)
-				break
-
+	if has_libarchive:
+		with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
+			for entry in archive:
+				if "data.tar.xz" in str(entry):
+					with open(f"{debug_dir}/data.tar.xz", "wb") as sub_archive:
+						for block in entry.get_blocks():
+							sub_archive.write(block)
+					break
+	else:
+		os.system(f"ar x {debug_dir}/{package_name} --output={debug_dir}")
+		os.remove(f"{debug_dir}/control.tar.xz")
+		os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
 	libc_number = re.search(r"\d+\.\d+", libc_version).group(0)
@@ -201,7 +223,7 @@ basic_info(binary, libc_version)
 
 create_debug_directory()
 copy_binary(binary)
-get_debug_loader(libc_version, architecture)
+get_loader(libc_version, architecture)
 get_debug_libc(libc, libc_version, architecture)
 
 set_executable(
