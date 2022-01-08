@@ -57,15 +57,17 @@ else:
 r.interactive()
 '''
 
-def create_script(binary, libc, gadgets):
+def create_script(binary, libc = None, gadgets = None):
 	script = script_prefix
 	if libc is None:
-		script += "\n" + gadgets
+		if gadgets is not None:
+			script += "\n" + gadgets
 		script += base_script_no_libc
 		script = script.format(binary)
 	else:
 		script += 'libc = ELF("./{2}/{1}", checksec = False)\n'
-		script += "\n" + gadgets
+		if gadgets is not None:
+			script += "\n" + gadgets
 		script += base_script_libc
 		script = script.format(binary, libc, debug_dir)
 		
@@ -382,7 +384,10 @@ if libc:
 	if rop:
 		binary_gadgets = get_rop_gadgets(binary, "gadgets")
 		libc_gadgets = get_rop_gadgets(libc, "libc-gadgets")
-	exploit_name = create_script(binary, libc, binary_gadgets + "\n" + libc_gadgets)
+		exploit_name = create_script(binary, libc, binary_gadgets + "\n" + libc_gadgets)
+	else:
+		exploit_name = create_script(binary, libc)
+
 else:
 	basic_info(binary)
 	find_possible_vulnerabilities(exe)
@@ -390,6 +395,8 @@ else:
 	check_seccomp(binary, exe)
 	if rop:
 		binary_gadgets = get_rop_gadgets(binary, "gadgets")
-	exploit_name = create_script(binary, None, binary_gadgets)
+		exploit_name = create_script(binary, None, binary_gadgets)
+	else:
+		exploit_name = create_script(binary)
 
 os.system(f"subl {exploit_name}")
