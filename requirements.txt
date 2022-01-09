@@ -2,4 +2,3 @@ pwntools
 requests
 pytest-shutil
 ROPgadget
-python-libarchive

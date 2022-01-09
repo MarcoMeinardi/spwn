@@ -28,6 +28,8 @@ gem install seccomp-tools
 pip install -r requirementes.txt
 chmod +x spwn.py
 sudo cp spwn.py /usr/bin/spwn
+# optional
+pip install -r optional_requirements.txt
 ```
 If you get errors with libarchive try following [this](https://stackoverflow.com/questions/29225812/libarchive-public-error-even-after-installing-libarchive-in-python) stackoverflow post or ignore them, since spwn can extract the needed files anyways.
 

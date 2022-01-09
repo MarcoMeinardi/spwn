@@ -325,8 +325,8 @@ def check_seccomp(binary, exe):
 def get_rop_gadgets(binary, file_name):
 	os.system(f"ROPgadget --binary {binary} --multibr > {file_name}")
 	interesting_gadgets = [
-		r"0x[0-9a-fA-F]+ : pop [a-z0-9]{2,3} ; ret\n",
-		r"0x[0-9a-fA-F]+ : xchg [a-za-z0-9]{2,3}, [a-za-z0-9]{2,3} ; ret\n",
+		r"0x[0-9a-fA-F]+ : pop [a-z0-9]{2,4} ; ret\n",
+		r"0x[0-9a-fA-F]+ : xchg [a-z0-9]{2,4}, [a-z0-9]{2,4} ; ret\n",
 		r"0x[0-9a-fA-F]+ : ret\n",
 		r"0x[0-9a-fA-F]+ : syscall ; ret\n",
 		r"0x[0-9a-fA-F]+ : syscall\n"
