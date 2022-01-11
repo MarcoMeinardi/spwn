@@ -19,7 +19,7 @@ debug_dir = "debug"
 # 2: debug directory
 script_prefix = \
 '''from pwn import *
-context.binary= "./{0}"
+context.binary = "./{0}"
 exe = ELF("./{0}", checksec = False)
 '''
 base_script_libc = \
@@ -186,7 +186,12 @@ def get_architecture(binary):
 
 def get_libc_version(libc):
 	with open(libc, "r", encoding = "latin-1") as f:
-		version = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read()).group()
+		match = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read())
+		if match:
+			version = match.group()
+		else:
+			print("[ERROR] Cannot get libc version")
+			quit()
 	return version
 
 def basic_info(binary, libc_version = None):
