@@ -65,7 +65,7 @@ def create_script(binary, libc = None, gadgets = None):
 		script += base_script_no_libc
 		script = script.format(binary)
 	else:
-		script += 'libc = ELF("./{2}/{1}", checksec = False)\n'
+		script += 'libc = ELF("./{2}/libc.so.6", checksec = False)\n'
 		if gadgets is not None:
 			script += "\n" + gadgets
 		script += base_script_libc
