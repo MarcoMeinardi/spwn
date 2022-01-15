@@ -375,7 +375,7 @@ if libc:
 	if loader is None:
 		get_loader(libc_version, architecture)
 	else:
-		shutil.copyfile(loader, f"./{debug_dir}/{loader}")
+		shutil.copyfile(loader, f"./{debug_dir}/ld-linux.so.2")
 	get_debug_libc(libc, libc_version, architecture)
 
 	set_executable(
