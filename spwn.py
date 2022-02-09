@@ -6,11 +6,6 @@ import re
 import requests
 import tarfile
 import shutil
-try:
-	import libarchive.public
-	has_libarchive = True
-except:
-	has_libarchive = False
 
 debug_dir = "debug"
 
@@ -240,18 +235,9 @@ def get_loader(libc_version, architecture):
 	with open(f"{debug_dir}/{package_name}", "wb") as f:
 		f.write(r.content)
 
-	if has_libarchive:
-		with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
-			for entry in archive:
-				if "data.tar.xz" in str(entry):
-					with open(f"{debug_dir}/data.tar.xz", "wb") as sub_archive:
-						for block in entry.get_blocks():
-							sub_archive.write(block)
-					break
-	else:
-		os.system(f"ar x {debug_dir}/{package_name} --output={debug_dir}")
-		os.remove(f"{debug_dir}/control.tar.xz")
-		os.remove(f"{debug_dir}/debian-binary")
+	os.system(f"ar x {debug_dir}/{package_name} --output={debug_dir}")
+	os.remove(f"{debug_dir}/control.tar.xz")
+	os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
 	libc_number = re.search(r"\d\.\d+", libc_version).group()
@@ -280,18 +266,9 @@ def get_debug_libc(libc, libc_version, architecture):
 	with open(f"{debug_dir}/{package_name}", "wb") as f:
 		f.write(r.content)
 
-	if has_libarchive:
-		with libarchive.public.file_reader(f"{debug_dir}/{package_name}") as archive:
-			for entry in archive:
-				if "data.tar.xz" in str(entry):
-					with open(f"{debug_dir}/data.tar.xz", "wb") as sub_archive:
-						for block in entry.get_blocks():
-							sub_archive.write(block)
-					break
-	else:
-		os.system(f"ar x {debug_dir}/{package_name} --output={debug_dir}")
-		os.remove(f"{debug_dir}/control.tar.xz")
-		os.remove(f"{debug_dir}/debian-binary")
+	os.system(f"ar x {debug_dir}/{package_name} --output={debug_dir}")
+	os.remove(f"{debug_dir}/control.tar.gz")
+	os.remove(f"{debug_dir}/debian-binary")
 	os.remove(f"{debug_dir}/{package_name}")
 
 	libc_number = re.search(r"\d\.\d+", libc_version).group()
