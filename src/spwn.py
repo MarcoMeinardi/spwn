@@ -2,9 +2,12 @@
 from pwn import *
 import os, sys
 import re
-import requests
-import tarfile
 import shutil
+
+from binary import Binary
+from library import Library
+from libc import Libc
+from loader import Loader
 
 DEFAULT_DEBUG_DIR_NAME = "debug"
 DEFAULT_SCRIPT_NAME = "a.py"
@@ -286,161 +289,83 @@ class Spwn:
 				os.chmod(file_name, 0o777)
 
 
-class Binary:
-	def __init__(self, file_name):
-		self.file_name = file_name
-		self.pwn_binary = ELF(self.file_name, checksec = False)
+# def get_rop_gadgets(binary, file_name):
+# 	os.system(f"ROPgadget --binary {binary} --multibr > {file_name}")
+# 	interesting_gadgets = [
+# 		r"0x[0-9a-fA-F]+ : pop [a-z0-9]{2,4} ; ret\n",
+# 		r"0x[0-9a-fA-F]+ : xchg [a-z0-9]{2,4}, [a-z0-9]{2,4} ; ret\n",
+# 		r"0x[0-9a-fA-F]+ : ret\n",
+# 		r"0x[0-9a-fA-F]+ : syscall ; ret\n",
+# 		r"0x[0-9a-fA-F]+ : syscall\n"
+# 	]
 
-	def run_command(self, command):
-		'''
-		Run {command} ./{filename}
-		Used to get basic information about the binary
-		'''
-		full_command = f"{command} ./{self.file_name}"
-		# Little injection check, just for you ;)
-		if not all(c in string.ascii_letters + string.digits + "_-." for c in command + self.file_name):
-			class DetectedInjectionError(Exception): pass
-			raise DetectedInjectionError("You're getting injected little boy")
-		print(f"[*] {command} ./{self.file_name}")
-		os.system(f"{command} ./{self.file_name}")
+# 	with open(file_name, "r") as f:
+# 		ropgadgets = f.read()
+# 	gadgets = ""
+# 	for interesting_gadget in interesting_gadgets:
+# 		ropgadgets_copy = ropgadgets
+# 		syscall_gadget = False
+# 		while gadget := re.search(interesting_gadget, ropgadgets_copy): # python regex sucks and doesn't match every case
+# 			ropgadgets_copy = ropgadgets_copy[gadget.span()[1]:]
+# 			gadget = gadget.group()
+# 			address, gadget_name = gadget.split(":")
+# 			gadget_name = gadget_name[1:-1].upper()
+# 			gadget_name = re.sub(r"( ; |, | )", "_", gadget_name)
+# 			if "libc" in file_name:
+# 				gadget_name = "LIBC_" + gadget_name
+# 			address = address[:-1]
+# 			gadgets += f"{gadget_name} = {address}\n"
 
-	def find_possible_vulnerabilities(self):
-		'''
-		Print functions that might lead to a vulnerability
-		'''
-		maybe_vulnerable = ["gets", "execve", "system", "printf", "__isoc99_scanf"]
-		found = []
-		for function in maybe_vulnerable:
-			if function in self.pwn_binary.symbols:
-				found.append(function)
-		
-		if found:
-			print("[*] There are some risky functions:")
-			print(*found)
+# 			if "syscall" in gadget: # avoid writing both syscall and syscall ret
+# 				syscall_gadget = True
+# 				break
+# 		if syscall_gadget: break
+	
+# 	return gadgets
 
-	def set_run_path_and_interpreter(self, debug_directory):
-		'''
-		Use patchelf to tell the binary to use the libc and the loader in the debug directory
-		'''
-		if os.path.exists(f"{debug_directory}/ld-linux.so.2"):
-			# If the loader has been downloaded correctly
-			command = f"patchelf {debug_directory}/{self.file_name} --set-rpath {debug_directory}/ --set-interpreter {debug_directory}/ld-linux.so.2"
-		else:
-			# Just use the libc
-			command = f"patchelf {debug_directory}/{self.file_name} --set-rpath {debug_directory}/"
+# binary, libc, loader = find_files()
+# rop = "rop" in sys.argv
+# exe = ELF(binary, checksec = False)
+# if libc:
+# 	architecture = get_architecture(libc)
+# 	libc_version = get_libc_version(libc)
+# 	basic_info(binary, libc_version)
+# 	find_possible_vulnerabilities(exe)
 
-		if os.system(command) != 0:
-			print("[ERROR] Cannot set run path or interpreter")
-			return False
-		else:
-			return True
+# 	create_debug_directory()
+# 	copy_binary(binary)
+# 	if loader is None:
+# 		get_loader(libc_version, architecture)
+# 	else:
+# 		shutil.copyfile(loader, f"./{debug_dir}/ld-linux.so.2")
+# 	get_debug_libc(libc, libc_version, architecture)
 
-	def check_possible_seccomp(self):
-		for symbol in self.pwn_binary.symbols:
-			if "seccomp" in symbol or "prctl" in symbol:
-				print("[*] There might be seccomps")
-				print(f"[*] timeout 1 seccomp-tools dump ./{self.file_name}")
-				os.system(f"timeout 1 seccomp-tools dump ./{self.file_name}")
+# 	set_executable(
+# 		f"./{debug_dir}/{binary}",
+# 		f"./{debug_dir}/libc.so.6",
+# 		f"./{debug_dir}/ld-linux.so.2",
+# 		f"./{binary}"
+# 	)
+# 	set_runpath(binary)
+# 	check_seccomp(f"{debug_dir}/{binary}", exe)
+# 	if rop:
+# 		binary_gadgets = get_rop_gadgets(binary, "gadgets")
+# 		libc_gadgets = get_rop_gadgets(libc, "libc-gadgets")
+# 		exploit_name = create_script(binary, libc, binary_gadgets + "\n" + libc_gadgets)
+# 	else:
+# 		exploit_name = create_script(binary, libc)
 
-class Library:
-	def __init__(self, file_name):
-		self.file_name = file_name
+# else:
+# 	basic_info(binary)
+# 	find_possible_vulnerabilities(exe)
+# 	set_executable(f"./{binary}")
+# 	check_seccomp(binary, exe)
+# 	if rop:
+# 		binary_gadgets = get_rop_gadgets(binary, "gadgets")
+# 		exploit_name = create_script(binary, None, binary_gadgets)
+# 	else:
+# 		exploit_name = create_script(binary)
 
-	def download_package(self, output_directory, package_name, package_url, file_to_extract, output_file):
-		'''
-		Download a (ubuntu) package
-		Used to get libc symbols and loader
-		'''
-		# Download package from ubuntu
-		r = requests.get(package_url)
-		if r.status_code != 200:
-			print(f"[ERROR] Cannot get debug package from {package_url} (error {r.status_code})")
-			return False
-
-		with open(f"{output_directory}/{package_name}", "wb") as f:
-			f.write(r.content)
-
-		# Extract everything and throw away what we don't need (I could have done it with libarchive, but it's borken)
-		os.system(f"ar x {output_directory}/{package_name} --output={output_directory}")
-		if os.path.exists(f"{output_directory}/control.tar.gz"):
-			os.remove(f"{output_directory}/control.tar.gz")
-		if os.path.exists(f"{output_directory}/control.tar.xz"):
-			os.remove(f"{output_directory}/control.tar.xz")
-		os.remove(f"{output_directory}/debian-binary")
-		os.remove(f"{output_directory}/{package_name}")
-
-		# Extract the needed file from the data.tar.xz sub-archive
-		data_archive = tarfile.open(f"{output_directory}/data.tar.xz", "r")
-		for file_name in data_archive.getnames():
-			if file_to_extract in file_name:
-				extracted_file = data_archive.extractfile(file_name)
-				break
-		else:
-			print(f"[ERROR] Cannot find {file_to_extract} in ubuntu package")
-			return False
-		
-		with open(f"{output_directory}/{output_file}", "wb") as f:
-			f.write(extracted_file.read())
-
-		# Delete the sub-archive from which we extracted the file
-		os.remove(f"{output_directory}/data.tar.xz")
-
-		return True
-
-class Libc(Library):
-	def __init__(self, file_name):
-		super().__init__(file_name)
-		self.pwn_libc = ELF(self.file_name, checksec = False)
-
-	def get_libc_version(self):
-		'''
-		Extract version from libc binary
-		For most libraries the libc version is written near the string "ubuntu"
-		'''
-		with open(self.file_name, "r", encoding = "latin-1") as f:
-			match = re.search(r"\d+\.\d+-\d+ubuntu\d+(\.\d+)?", f.read())
-			if match:
-				self.ubuntu_version = match.group()
-				self.libc_number = re.search(r"\d\.\d+", self.ubuntu_version).group()
-			else:
-				print("[ERROR] Cannot get libc version")
-				return None
-		return self.libc_number
-
-	def has_debug_info(self):
-		return bool(self.pwn_libc.get_section_by_name(".debug_info"))
-
-	def download_libc_with_debug_symbols(self, output_directory):
-		'''
-		Download libc debug symbols from ubuntu packages and create an unstripped version of the libc in the debug directory
-		'''
-		package_name = f"libc6-dbg_{self.ubuntu_version}_{self.pwn_libc.get_machine_arch()}.deb"
-		package_url = "https://launchpad.net/ubuntu/+archive/primary/+files/" + package_name
-		libc_debug_name = f"libc-{self.libc_number}.so"
-		if not self.download_package(output_directory, package_name, package_url, libc_debug_name, "libc.so.6"):
-			return False
-
-		# unstrip the libc
-		result =  os.system(f"eu-unstrip ./{self.file_name} {output_directory}/libc.so.6") == 0
-		if not result:
-			print("[ERROR] Cannot unstrip libc")
-			return False
-		else:
-			return True
-
-class Loader(Library):
-	def __init__(self, file_name, libc):
-		super().__init__(file_name)
-		self.libc = libc
-
-	def download_loader(self, output_directory):
-		'''
-		Download a loader from ubuntu packages to run the binary with the given libc
-		'''
-		package_name = f"libc6_{self.libc.ubuntu_version}_{self.libc.pwn_libc.get_machine_arch()}.deb"
-		package_url = "https://launchpad.net/ubuntu/+archive/primary/+files/" + package_name
-		loader_name = f"ld-{self.libc.libc_number}.so"
-		return self.download_package(output_directory, package_name, package_url, loader_name, "ld-linux.so.2")
-
+# os.system(f"subl {exploit_name}")
 
 Spwn("manual" in sys.argv)
