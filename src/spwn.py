@@ -1,17 +1,32 @@
-#!/usr/bin/env python3
 from pwn import *
-import os, sys
-import re
+import os
 import shutil
 
 from binary import Binary
-from library import Library
 from libc import Libc
 from loader import Loader
+from rop import ROP
+
+TEXT_EDITOR_COMMAND = "xdg-open"
 
 DEFAULT_DEBUG_DIR_NAME = "debug"
 DEFAULT_SCRIPT_NAME = "a.py"
-TEXT_EDITOR_COMMAND = "subl"
+BINARY_GADGETS_OUTPUT_FILE = "gadgets"
+LIBC_GADGETS_OUTPUT_FILE = "libc_gadgets"
+LIBC_GADGETS_PREFIX = "LIBC_"
+
+BINARY_GADGET_REGEXS = [
+    r"0x[0-9a-fA-F]+ : pop [a-z0-9]{3} ; ret\n", # single pop
+    r"0x[0-9a-fA-F]+ : pop [a-z0-9]{3} ; pop [a-z0-9]{3} ; ret\n", # double pop
+    r"0x[0-9a-fA-F]+ : ret\n", # ret (always remember to align the stack before calling system)
+    [r"0x[0-9a-fA-F]+ : syscall ; ret\n", r"0x[0-9a-fA-F]+ : syscall\n"] # syscall (if the first is present, don't search for the second)
+]
+
+LIBC_GADGET_REGEXS = [
+    r"0x[0-9a-fA-F]+ : pop [a-z0-9]{3} ; ret\n", # single pop is enough for a libc
+    r"0x[0-9a-fA-F]+ : ret\n",
+    [r"0x[0-9a-fA-F]+ : syscall ; ret\n", r"0x[0-9a-fA-F]+ : syscall\n"]
+]
 
 # 0: binary
 # 1: original libc
@@ -51,11 +66,12 @@ r.interactive()
 '''
 
 class Spwn:
-	def __init__(self, manual_file_selection):
+	def __init__(self, manual_file_selection, get_gadgets):
 		if not self.find_files(manual_file_selection):
 			print("Aborting")
 			return
 		self.binary = Binary(self.binary_name)
+
 		if self.libc_name:
 			self.libc = Libc(self.libc_name)
 			self.debug_directory = DEFAULT_DEBUG_DIR_NAME
@@ -71,11 +87,23 @@ class Spwn:
 			if self.loader_name:
 				self.set_executable(f"./{self.loader_name}")
 			self.binary.set_run_path_and_interpreter(f"./{self.debug_directory}")
+			self.binary.check_possible_seccomp()
 		else:
 			self.get_files_informations()
 			self.set_executable(f"./{self.binary_name}")
+			self.binary.check_possible_seccomp()
 
-		self.gadgets = None
+		if get_gadgets:
+			rop_binary = ROP(self.binary_name, BINARY_GADGETS_OUTPUT_FILE)
+			self.script_gadgets = rop_binary.extract_basic_gadgets(BINARY_GADGET_REGEXS)
+			if self.libc_name is not None:
+				rop_libc = ROP(self.libc_name, LIBC_GADGETS_OUTPUT_FILE, LIBC_GADGETS_PREFIX)
+				self.script_gadgets += rop_libc.extract_basic_gadgets(LIBC_GADGET_REGEXS)
+			if not self.script_gadgets:
+				self.script_gadgets = "# Wow that's so unlucky! I found no gadgets\n"
+		else:
+			self.script_gadgets = None
+
 		self.exploit_name = DEFAULT_SCRIPT_NAME
 		self.create_script()
 		self.open_script()
@@ -89,8 +117,8 @@ class Spwn:
 		# without libc
 		if self.libc_name is None:
 			# Add rop gadgets
-			if self.gadgets is not None:
-				script += "\n" + self.gadgets
+			if self.script_gadgets is not None:
+				script += "\n" + self.script_gadgets
 			script += base_script_no_libc
 			script = script.format(self.binary_name)
 
@@ -98,13 +126,13 @@ class Spwn:
 		else:
 			script += 'libc = ELF("./{2}/libc.so.6", checksec = False)\n'
 			# Add rop gadgets
-			if self.gadgets is not None:
-				script += "\n" + self.gadgets
+			if self.script_gadgets is not None:
+				script += "\n" + self.script_gadgets
 			script += base_script_libc
 			script = script.format(self.binary_name, self.libc_name, self.debug_directory)
 			
 		while os.path.exists(f"./{self.exploit_name}"):
-			print(f"[!] \"{self.exploit_name}\" already exists, type in a new name or press enter to overwrite it")
+			print(f'[!] "{self.exploit_name}" already exists, type in a new name or press enter to overwrite it')
 			inp = input("> ").strip()
 			if not inp:
 				break
@@ -287,85 +315,3 @@ class Spwn:
 		for file_name in args:
 			if os.path.exists(file_name):
 				os.chmod(file_name, 0o777)
-
-
-# def get_rop_gadgets(binary, file_name):
-# 	os.system(f"ROPgadget --binary {binary} --multibr > {file_name}")
-# 	interesting_gadgets = [
-# 		r"0x[0-9a-fA-F]+ : pop [a-z0-9]{2,4} ; ret\n",
-# 		r"0x[0-9a-fA-F]+ : xchg [a-z0-9]{2,4}, [a-z0-9]{2,4} ; ret\n",
-# 		r"0x[0-9a-fA-F]+ : ret\n",
-# 		r"0x[0-9a-fA-F]+ : syscall ; ret\n",
-# 		r"0x[0-9a-fA-F]+ : syscall\n"
-# 	]
-
-# 	with open(file_name, "r") as f:
-# 		ropgadgets = f.read()
-# 	gadgets = ""
-# 	for interesting_gadget in interesting_gadgets:
-# 		ropgadgets_copy = ropgadgets
-# 		syscall_gadget = False
-# 		while gadget := re.search(interesting_gadget, ropgadgets_copy): # python regex sucks and doesn't match every case
-# 			ropgadgets_copy = ropgadgets_copy[gadget.span()[1]:]
-# 			gadget = gadget.group()
-# 			address, gadget_name = gadget.split(":")
-# 			gadget_name = gadget_name[1:-1].upper()
-# 			gadget_name = re.sub(r"( ; |, | )", "_", gadget_name)
-# 			if "libc" in file_name:
-# 				gadget_name = "LIBC_" + gadget_name
-# 			address = address[:-1]
-# 			gadgets += f"{gadget_name} = {address}\n"
-
-# 			if "syscall" in gadget: # avoid writing both syscall and syscall ret
-# 				syscall_gadget = True
-# 				break
-# 		if syscall_gadget: break
-	
-# 	return gadgets
-
-# binary, libc, loader = find_files()
-# rop = "rop" in sys.argv
-# exe = ELF(binary, checksec = False)
-# if libc:
-# 	architecture = get_architecture(libc)
-# 	libc_version = get_libc_version(libc)
-# 	basic_info(binary, libc_version)
-# 	find_possible_vulnerabilities(exe)
-
-# 	create_debug_directory()
-# 	copy_binary(binary)
-# 	if loader is None:
-# 		get_loader(libc_version, architecture)
-# 	else:
-# 		shutil.copyfile(loader, f"./{debug_dir}/ld-linux.so.2")
-# 	get_debug_libc(libc, libc_version, architecture)
-
-# 	set_executable(
-# 		f"./{debug_dir}/{binary}",
-# 		f"./{debug_dir}/libc.so.6",
-# 		f"./{debug_dir}/ld-linux.so.2",
-# 		f"./{binary}"
-# 	)
-# 	set_runpath(binary)
-# 	check_seccomp(f"{debug_dir}/{binary}", exe)
-# 	if rop:
-# 		binary_gadgets = get_rop_gadgets(binary, "gadgets")
-# 		libc_gadgets = get_rop_gadgets(libc, "libc-gadgets")
-# 		exploit_name = create_script(binary, libc, binary_gadgets + "\n" + libc_gadgets)
-# 	else:
-# 		exploit_name = create_script(binary, libc)
-
-# else:
-# 	basic_info(binary)
-# 	find_possible_vulnerabilities(exe)
-# 	set_executable(f"./{binary}")
-# 	check_seccomp(binary, exe)
-# 	if rop:
-# 		binary_gadgets = get_rop_gadgets(binary, "gadgets")
-# 		exploit_name = create_script(binary, None, binary_gadgets)
-# 	else:
-# 		exploit_name = create_script(binary)
-
-# os.system(f"subl {exploit_name}")
-
-Spwn("manual" in sys.argv)

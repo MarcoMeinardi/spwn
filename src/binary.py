@@ -51,6 +51,9 @@ class Binary:
 			return True
 
 	def check_possible_seccomp(self):
+		'''
+		Check if there are seccomp related functions and eventually run seccom-tools to detect them
+		'''
 		for symbol in self.pwn_binary.symbols:
 			if "seccomp" in symbol or "prctl" in symbol:
 				print("[*] There might be seccomps")

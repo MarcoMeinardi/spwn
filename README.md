@@ -1,7 +1,7 @@
 # Spwn
 
 This repository is just the translation of [pwninit](https://github.com/io12/pwninit).
-It has been created because I love the utilities provided by pwninit, but I'm to lazy to learn Rust and I wanted to customize it, so I rewrote it in python.
+It has been created because I love the utilities provided by pwninit, but I'm to lazy to learn Rust and I wanted to customize it, so I rewrote it in python (and added some more features).
 
 ## Features
  * Auto detect files (binary, libc, loader)
@@ -18,16 +18,22 @@ It has been created because I love the utilities provided by pwninit, but I'm to
 ## Usage
 Go into the directory with the challenge file and run:
 `spwn` or `spwn rop` to get rop gadgets
+If the files have weird namings (such as the libc name not starting with libc), the autodetection will probably fail, so just use `spwn manual [rop]` to immediately switch to manual selection.
 
 ## Installation
 ```
 sudo apt install elfutils
 sudo apt install binutils
 sudo apt install patchelf
-gem install seccomp-tools
-pip install -r requirementes.txt
-chmod +x spwn.py
-sudo cp spwn.py /usr/bin/spwn
-```
+sudo gem install seccomp-tools
 
-You should modify the last line of `spwn.py` (`os.system(f"subl {exploit_name}")`) to launch the text editor you want to use to write the exploit (in my case sublime text).
+git clone https://github.com/MarcoMeinardi/spwn.git
+cd spwn
+pip install -r requirements.txt
+cd src
+zip spwn.zip *
+echo '#!/usr/bin/env python3' | cat - spwn.zip > spwn
+rm spwn.zip
+chmod +x spwn
+sudo mv spwn /usr/bin/spwn
+```
