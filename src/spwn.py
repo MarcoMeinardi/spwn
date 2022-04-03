@@ -18,12 +18,14 @@ LIBC_GADGETS_PREFIX = "LIBC_"
 BINARY_GADGET_REGEXS = [
     r"0x[0-9a-fA-F]+ : pop [a-z0-9]{3} ; ret\n", # single pop
     r"0x[0-9a-fA-F]+ : pop [a-z0-9]{3} ; pop [a-z0-9]{3} ; ret\n", # double pop
+    r"0x[0-9a-fA-F]+ : leave ; ret\n", # leave
     r"0x[0-9a-fA-F]+ : ret\n", # ret (always remember to align the stack before calling system)
     [r"0x[0-9a-fA-F]+ : syscall ; ret\n", r"0x[0-9a-fA-F]+ : syscall\n"] # syscall (if the first is present, don't search for the second)
 ]
 
 LIBC_GADGET_REGEXS = [
     r"0x[0-9a-fA-F]+ : pop [a-z0-9]{3} ; ret\n", # single pop is enough for a libc
+    r"0x[0-9a-fA-F]+ : leave ; ret\n",
     r"0x[0-9a-fA-F]+ : ret\n",
     [r"0x[0-9a-fA-F]+ : syscall ; ret\n", r"0x[0-9a-fA-F]+ : syscall\n"]
 ]
@@ -124,7 +126,7 @@ class Spwn:
 
 		# with libc
 		else:
-			script += 'libc = ELF("./{2}/libc.so.6", checksec = False)\n'
+			script += 'libc = ELF("./{1}", checksec = False)\n'
 			# Add rop gadgets
 			if self.script_gadgets is not None:
 				script += "\n" + self.script_gadgets
