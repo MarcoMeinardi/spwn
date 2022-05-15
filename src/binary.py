@@ -59,3 +59,4 @@ class Binary:
 				print("[*] There might be seccomps")
 				print(f"[*] timeout 1 seccomp-tools dump ./{self.file_name}")
 				os.system(f"timeout 1 seccomp-tools dump ./{self.file_name}")
+				break
