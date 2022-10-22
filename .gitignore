@@ -1,2 +1,8 @@
-__pycache__
-test*
+.tags*
+.vscode
+.gitignore
+tests/*/a.py
+tests/*/debug
+spwn/__pycache__
+spwn.egg-info
+build
