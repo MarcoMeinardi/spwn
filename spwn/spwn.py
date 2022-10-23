@@ -97,8 +97,26 @@ class Spwn:
 		for library in self.files.other_libraries:
 			shutil.copy(library, os.path.join(DEBUG_DIR, library))
 		
+help_msg = r"""
+spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn
+
+Usage:
+    spwn [inter] [help]
+	- inter:
+	    Interactively create interaction functions
+	- help:
+	    Print this message
+
+Bug report: https://github.com/MarcoMeinardi/spwn/issues
+"""[1:-1]
+
+def print_help_msg():
+	print(help_msg)
+	
 def main():
-	if any("inter" in arg for arg in sys.argv):
+	if any("help" in arg for arg in sys.argv):
+		print_help_msg()
+	elif any("inter" in arg for arg in sys.argv):
 		Spwn(create_interactions=True).run()
 	else:
 		Spwn(create_interactions=False).run()

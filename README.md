@@ -19,10 +19,17 @@ some more features).
  * Check if there might be seccomp and run `seccomp-tools dump`
 
 ## Usage
-Go into the directory with the challenge file and run: `spwn`
+Go into the directory with the challenge file and run `spwn` or `spwn inter`
+if you want to create the interaction funcitons or `spwn help` to view the
+help message.
+
 If the files have weird namings (such as the libc name not starting with
 libc), the autodetection will fail and fall in the manual selection,
 the best fix for this is to rename the files.
+
+To understand how the interactions creation works, I suggest to just try
+it out. It should be pretty straight forward, but if you want to pwn
+as fast as possible, you cannot waste any time :)
 
 ## Installation
 Non python tools:
