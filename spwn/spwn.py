@@ -1,5 +1,7 @@
+from code import InteractiveConsole
 import os
 import shutil
+import sys
 
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
@@ -9,7 +11,8 @@ DEBUG_DIR   = "debug"
 SCRIPT_FILE = "a.py"
 
 class Spwn:
-	def __init__(self):
+	def __init__(self, create_interactions: bool):
+		self.create_interactions = create_interactions
 		self.files = FileManager()
 		self.files.auto_recognize()
 
@@ -38,7 +41,7 @@ class Spwn:
 		self.files.binary.set_executable()
 		analyzer.post_analisys()
 
-		self.scripter = Scripter(self.files)
+		self.scripter = Scripter(self.files, create_interactions=self.create_interactions)
 		self.scripter.create_script(DEBUG_DIR)
 		self.create_script_file()
 		self.scripter.save_script(SCRIPT_FILE)
@@ -95,4 +98,9 @@ class Spwn:
 			shutil.copy(library, os.path.join(DEBUG_DIR, library))
 		
 def main():
-	Spwn().run()
+	if any("inter" in arg for arg in sys.argv):
+		Spwn(create_interactions=True).run()
+	else:
+		Spwn(create_interactions=False).run()
+
+	

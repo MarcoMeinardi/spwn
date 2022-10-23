@@ -1,3 +1,4 @@
+from spwn.filemanager import FileManager
 import spwn.utils as utils
 
 # 0: binary name
@@ -37,12 +38,16 @@ r.interactive()
 '''
 
 class Scripter:
-    def __init__(self, files):
+    def __init__(self, files: FileManager, create_interactions: bool):
         self.files = files
+        self.create_interactions = create_interactions
+        self.interactions = ""
         
 
     def create_script(self, debug_dir: str) -> None:
-        self.create_menu_interaction_functions()
+        if self.create_interactions:
+            self.create_menu_interaction_functions()
+
         if self.files.libc:
             self.script  = template_loads_with_libc.format(self.files.binary.name, self.files.libc.name)
         else:
@@ -56,8 +61,7 @@ class Scripter:
             f.write(self.script)
 
     def create_menu_interaction_functions(self) -> None:
-        self.interactions = ""
-        menu_recvuntil = input("Menu recvuntil ( empty to skip interactions ) > ")[:-1]
+        menu_recvuntil = input("Menu recvuntil > ")[:-1]
         if not menu_recvuntil: return
         while True:
             fun_name = self.ask_function_name()
@@ -67,7 +71,7 @@ class Scripter:
             self.interactions += function.emit_function() + "\n"
 
     def ask_function_name(self) -> str | None:
-        name = input("Function name > ")[:-1]
+        name = input("Function name ( Empty to end ) > ")[:-1]
         return name if name else None
 
 
@@ -89,7 +93,7 @@ class InteractionFunction:
             print("[!] Cannot be empty")
 
     def ask_variable(self) -> bool:
-        var_type = utils.ask_list("Variable type", ["int", "bytes"])
+        var_type = utils.ask_list("Variable type", ["int", "bytes"], "( Empty to end function )")
         if var_type is None: return False
 
         if var_type == "int":

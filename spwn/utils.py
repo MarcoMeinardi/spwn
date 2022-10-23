@@ -32,7 +32,7 @@ def ask_list_delete(msg: str, options: list[str], can_skip: bool) -> str | None:
 
 	return ans
 
-def ask_list(msg: str, options: list[str]) -> str | None:
+def ask_list(msg: str, options: list[str], extra_msg: str="") -> str | None:
 	if len(options) == 1:
 		ans = options[0]
 		return ans
@@ -42,7 +42,10 @@ def ask_list(msg: str, options: list[str]) -> str | None:
 		print(f"[{n + 1}] {op}")
 
 	while True:
-		resp = input("> ").strip()
+		if extra_msg:
+			resp = input(f"{extra_msg} > ").strip()
+		else:
+			resp = input("> ").strip()
 		if not resp:
 			return None
 
