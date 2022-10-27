@@ -39,6 +39,10 @@ class FileManager:
 		# Binary
 		if len(binaries) == 1:
 			self.binary = Binary(binaries[0])
+		elif len(binaries) > 1:
+			self.binary = utils.ask_list_delete("Select binary", binaries, can_skip=False)
+			self.binary = Binary(self.binary)
+			self.other_libraries.extend(binaries)
 		else:
 			self.ask_all(files)
 			return
