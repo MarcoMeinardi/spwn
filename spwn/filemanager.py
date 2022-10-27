@@ -66,13 +66,12 @@ class FileManager:
 		if len(loaders) == 1:
 			self.loader = Loader(loaders[0])
 		else:
-			loaders.extend(self.other_libraries)
 			if not loaders: 
 				return 
 			self.loader = utils.ask_list_delete("Select loader", loaders, can_skip=True)
 			if self.loader:
 				self.loader = Loader(self.loader)
-			self.other_libraries = loaders
+			self.other_libraries.extend(loaders)
 
 
 	def ask_all(self, files: list[str]) -> None:
