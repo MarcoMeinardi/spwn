@@ -7,16 +7,16 @@ template_loads_with_libc = '''
 from pwn import *
 
 binary_name = "{0}"
-context.binary = binary_name
-exe  = ELF(binary_name, checksec=False)
+exe  = ELF(binary_name, checksec=True)
+context.binary = exe
 libc = ELF("{1}", checksec=False)
 '''[1:]
 template_loads_without_libc = '''
 from pwn import *
 
 binary_name = "{0}"
-context.binary = binary_name
-exe = ELF(binary_name, checksec=False)
+exe  = ELF(binary_name, checksec=True)
+context.binary = exe
 '''[1:]
 
 # 0: debug directory or '.' if no libc
