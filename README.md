@@ -50,10 +50,14 @@ as possible. If you want to customize your own `spwn` you can:
  - Modify whatever you want
  - In the repository's root directory: `pip install -U .`
 
+or directly modify the files in:
+`~/.local/lib/python3.{version}/site-packages/spwn`
+
 Easiest customizations:
+ - Template script: `template.py` or whatever you want by modifying
+ the `TEMPLATE_FILE` in `spwn.py`
  - Debug directory and script default name: `DEBUG_DIR` and `SCRIPT_FILE`
  in `spwn.py`
- - Script templates: `template...` in `scripter.py`
 
 If you have any questions or feature requests, feel free to ask
 [here](https://github.com/MarcoMeinardi/spwn/issues).
