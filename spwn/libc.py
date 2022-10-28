@@ -7,7 +7,18 @@ from spwn.binary import Binary
 class Libc(Binary):
 	def __init__(self, name: str):
 		super().__init__(name)
-		self.version = pwn.platform.libc_ver(self.name)[1]
+		self.version = self.get_libc_version()
+	
+	def get_libc_version(self) -> str:
+		
+
+		with open(self.name, "rb") as f:
+			content = f.read().decode("latin-1")
+		match = re.search(r"stable release version (\d\.\d+)", content)
+		if match:
+			return match.group(1)
+		
+		return pwn.platform.libc_ver(self.name)[1]
 
 	def has_debug_info(self) -> bool:
 		return bool(self.pwnfile.get_section_by_name(".debug_info"))
