@@ -7,8 +7,9 @@ from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
 
-DEBUG_DIR   = "debug"
-SCRIPT_FILE = "a.py"
+DEBUG_DIR     = "debug"
+SCRIPT_FILE   = "a.py"
+TEMPLATE_FILE = f"/home/{os.getlogin()}/.local/lib/python3.10/site-packages/spwn/template.py"
 
 class Spwn:
 	def __init__(self, create_interactions: bool):
@@ -41,7 +42,7 @@ class Spwn:
 		self.files.binary.set_executable()
 		analyzer.post_analisys()
 
-		self.scripter = Scripter(self.files, create_interactions=self.create_interactions)
+		self.scripter = Scripter(self.files, TEMPLATE_FILE, create_interactions=self.create_interactions)
 		self.scripter.create_script(DEBUG_DIR)
 		self.create_script_file()
 		self.scripter.save_script(SCRIPT_FILE)

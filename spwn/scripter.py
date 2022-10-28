@@ -1,43 +1,14 @@
 from spwn.filemanager import FileManager
 import spwn.utils as utils
 
-template_loads_with_libc = '''
-from pwn import *
-
-binary_name = "{binary}"
-exe  = ELF(binary_name, checksec=True)
-libc = ELF("{libc}", checksec=False)
-context.binary = exe
-'''[1:]
-template_loads_without_libc = '''
-from pwn import *
-
-binary_name = "{binary}"
-exe = ELF(binary_name, checksec=True)
-context.binary = exe
-'''[1:]
-
-template_start_program = '''
-if args.REMOTE:
-    r = connect("")
-elif args.GDB:
-    r = gdb.debug(f"{debug_dir}/{{binary_name}}", """
-        c
-    """)
-else:
-    r = process(f"{debug_dir}/{{binary_name}}")
-
-{interactions}
-
-
-r.interactive()
-'''
 
 class Scripter:
-    def __init__(self, files: FileManager, create_interactions: bool):
+    def __init__(self, files: FileManager, template_filename: str, create_interactions: bool):
         self.files = files
         self.create_interactions = create_interactions
         self.interactions = ""
+        with open(template_filename) as f:
+            self.template = f.read()
         
 
     def create_script(self, debug_dir: str) -> None:
@@ -45,12 +16,30 @@ class Scripter:
             self.create_menu_interaction_functions()
 
         if self.files.libc:
-            self.script  = template_loads_with_libc.format(binary=self.files.binary.name, libc=self.files.libc.name)
-        else:
-            debug_dir = '.'
-            self.script  = template_loads_without_libc.format(binary=self.files.binary.name)
+            self.script = self.template.format(
+                binary=self.files.binary.name,
+                libc=self.files.libc.name,
+                debug_dir=debug_dir,
+                interactions=self.interactions
+            )
 
-        self.script += template_start_program.format(debug_dir=debug_dir, interactions=self.interactions)
+        else:
+            # Remove libc line from template
+            lines = self.template.splitlines()
+            ind = 0
+            while ind < len(lines):
+                if "{libc}" in lines[ind]:
+                    del lines[ind]
+                else:
+                    ind += 1
+            self.template = "\n".join(lines)
+
+            self.script = self.template.format(
+                binary=self.files.binary.name,
+                debug_dir=".",
+                interactions=self.interactions
+            )
+
 
     def save_script(self, output_file: str) -> None:
         with open(output_file, "w") as f:
