@@ -1,37 +1,33 @@
 from spwn.filemanager import FileManager
 import spwn.utils as utils
 
-# 0: binary name
-# 1: libc name
 template_loads_with_libc = '''
 from pwn import *
 
-binary_name = "{0}"
+binary_name = "{binary}"
 exe  = ELF(binary_name, checksec=True)
+libc = ELF("{libc}", checksec=False)
 context.binary = exe
-libc = ELF("{1}", checksec=False)
 '''[1:]
 template_loads_without_libc = '''
 from pwn import *
 
-binary_name = "{0}"
-exe  = ELF(binary_name, checksec=True)
+binary_name = "{binary}"
+exe = ELF(binary_name, checksec=True)
 context.binary = exe
 '''[1:]
 
-# 0: debug directory or '.' if no libc
-# 1: interaction functions
 template_start_program = '''
 if args.REMOTE:
     r = connect("")
 elif args.GDB:
-    r = gdb.debug(f"{0}/{{binary_name}}", """
+    r = gdb.debug(f"{debug_dir}/{{binary_name}}", """
         c
     """)
 else:
-    r = process(f"{0}/{{binary_name}}")
+    r = process(f"{debug_dir}/{{binary_name}}")
 
-{1}
+{interactions}
 
 
 r.interactive()
@@ -49,12 +45,12 @@ class Scripter:
             self.create_menu_interaction_functions()
 
         if self.files.libc:
-            self.script  = template_loads_with_libc.format(self.files.binary.name, self.files.libc.name)
+            self.script  = template_loads_with_libc.format(binary=self.files.binary.name, libc=self.files.libc.name)
         else:
             debug_dir = '.'
-            self.script  = template_loads_without_libc.format(self.files.binary.name)
+            self.script  = template_loads_without_libc.format(binary=self.files.binary.name)
 
-        self.script += template_start_program.format(debug_dir, self.interactions)
+        self.script += template_start_program.format(debug_dir=debug_dir, interactions=self.interactions)
 
     def save_script(self, output_file: str) -> None:
         with open(output_file, "w") as f:
