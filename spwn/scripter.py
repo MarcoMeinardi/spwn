@@ -25,15 +25,8 @@ class Scripter:
 
         else:
             # Remove libc line from template
-            lines = self.template.splitlines()
-            ind = 0
-            while ind < len(lines):
-                if "{libc}" in lines[ind]:
-                    del lines[ind]
-                else:
-                    ind += 1
-            self.template = "\n".join(lines)
-
+            self.template = "\n".join(filter(lambda x: "{libc}" not in x, self.template.splitlines()))
+            
             self.script = self.template.format(
                 binary=self.files.binary.name,
                 debug_dir=".",

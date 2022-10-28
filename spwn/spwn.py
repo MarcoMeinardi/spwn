@@ -9,7 +9,7 @@ from spwn.scripter import Scripter
 
 DEBUG_DIR     = "debug"
 SCRIPT_FILE   = "a.py"
-TEMPLATE_FILE = f"/home/{os.getlogin()}/.local/lib/python3.10/site-packages/spwn/template.py"
+TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "template.py")
 
 class Spwn:
 	def __init__(self, create_interactions: bool):
