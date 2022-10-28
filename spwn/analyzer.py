@@ -46,6 +46,8 @@ class Analyzer:
 		print("[!] Possible seccomp found")
 		seccomp_cmd = f"seccomp-tools dump ./{self.files.binary.name} < /dev/null"
 		print(f"[*] {seccomp_cmd}")
-		print(subprocess.check_output(seccomp_cmd, timeout=1, shell=True, stderr=subprocess.STDOUT, encoding="utf8"))
-		
+		try:
+			print(subprocess.check_output(seccomp_cmd, timeout=1, shell=True, stderr=subprocess.STDOUT, encoding="utf8"))
+		except subprocess.TimeoutExpired as e:
+			print(f"[!] {e}")
 		
