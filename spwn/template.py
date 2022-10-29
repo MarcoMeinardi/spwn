@@ -6,13 +6,13 @@ libc = ELF("{libc}", checksec=False)
 context.binary = exe
 
 if args.REMOTE:
-    r = connect("")
+	r = connect("")
 elif args.GDB:
-    r = gdb.debug(f"{debug_dir}/{{binary_name}}", """
-        c
-    """)
+	r = gdb.debug(f"{debug_dir}/{{binary_name}}", """
+		c
+	""")
 else:
-    r = process(f"{debug_dir}/{{binary_name}}")
+	r = process(f"{debug_dir}/{{binary_name}}")
 
 {interactions}
 
