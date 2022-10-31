@@ -12,7 +12,7 @@ some more features).
  * Unstrip the libc with `pwn.libcdb.unstrip_libc`
  * Set binary and loader executable
  * Set runpath and interpreter for the debug binary
- * Generate a basic script to launch the files in different ways
+ * Generate a basic script from a template
  * Interactively generate functions to interact with the binary
  * Print basic info about the files (`file`, `checksec`, libc
  version, potentially vulnerable functions)
@@ -55,7 +55,7 @@ or directly modify the files in:
 
 Note that `default-template.py` is copied only on the first installation,
 thus, if you want to modify the template, you have to edit the
-`template.py`, specified in the configs.
+`template.py` file, specified in the configs.
 
 ## Configurations
 You can configure some stuffs in the config file. It's default location
@@ -66,8 +66,9 @@ you can modify to your liking.
 The template path can be directly edited in the config file, however,
 if you want to change the location of the config file, you have to
 edit the source code. The variable is `CONFIG_PATH` in `spwn.py`.
-It's location should be `~/.local/lib/python3.{python-version}/site-packages/spwn/spwn.py`. Note that if you reinstall or update `spwn`,
-This variable will be overwritten.
+It's location should be `~/.local/lib/python3.{python-version}/site
+-packages/spwn/spwn.py`. Note that if you reinstall or update `spwn`,
+this variable will be overwritten.
 
 
 If you have any question or feature request, feel free to ask
