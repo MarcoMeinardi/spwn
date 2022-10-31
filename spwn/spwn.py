@@ -8,7 +8,7 @@ from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
 
-CONFIG_PATH = os.path.expanduser("~/.config/spwn/config")
+CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
 configs = json.load(open(CONFIG_PATH))
 DEBUG_DIR     = configs["debug_dir"]
 SCRIPT_FILE   = configs["script_file"]

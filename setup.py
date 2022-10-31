@@ -32,7 +32,7 @@ config_dir = os.path.expanduser("~/.config/spwn")
 if not os.path.exists(config_dir):
 	os.mkdir(config_dir)
 
-config_file = os.path.expanduser("~/.config/spwn/config")
+config_file = os.path.expanduser("~/.config/spwn/config.json")
 template_file = os.path.expanduser("~/.config/spwn/template.py")
 if not os.path.exists(config_file):
 	with open(config_file, "w") as f:
