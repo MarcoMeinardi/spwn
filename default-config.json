@@ -1,0 +1,5 @@
+{
+	"debug_dir": "debug",
+	"script_file": "a.py",
+	"template_file": "~/.config/spwn/template.py"
+}
