@@ -2,14 +2,17 @@ from code import InteractiveConsole
 import os
 import shutil
 import sys
+import json
 
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
 
-DEBUG_DIR     = "debug"
-SCRIPT_FILE   = "a.py"
-TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "template.py")
+CONFIG_PATH = os.path.expanduser("~/.config/spwn/config")
+configs = json.load(open(CONFIG_PATH))
+DEBUG_DIR     = configs["debug_dir"]
+SCRIPT_FILE   = configs["script_file"]
+TEMPLATE_FILE = os.path.expanduser(configs["template_file"])
 
 class Spwn:
 	def __init__(self, create_interactions: bool):
