@@ -32,7 +32,7 @@ with open("README.md") as f:
 
 setuptools.setup(
 	name="spwn",
-	version="0.1",
+	version="1.0",
 	author="Chino",
 	description="Automatic tool to quickly start a pwn CTF challenge",
 	long_description=long_description,
