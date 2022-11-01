@@ -101,11 +101,11 @@ class FileManager:
 			self.libc = None
 			self.loader = None
 
-	def get_loader(self, debug_dir: str) -> bool:
+	def get_loader(self, debug_dir: str) -> None:
 		ubuntu_version = self.libc.get_ubuntu_version_string()
 		if ubuntu_version is None:
 			print("[!] Cannot get ubuntu packet name for loader")
-			return False
+			return
 
 		package_name = f"libc6_{ubuntu_version}_{self.libc.pwnfile.get_machine_arch()}.deb"	
 		package_url  = f"https://launchpad.net/ubuntu/+archive/primary/+files/{package_name}"
@@ -114,28 +114,28 @@ class FileManager:
 		print("[+] Downloading loader")
 		if not utils.download_package(package_url, tempdir):
 			shutil.rmtree(tempdir)
-			return False
+			return
 
 		print("[+] Extracting loader")
 		if not utils.extract_deb(tempdir):
 			shutil.rmtree(tempdir)
-			return False
+			return
 
 		if not utils.find_and_extract_data(tempdir):
 			shutil.rmtree(tempdir)
-			return False
+			return
 
 		loader_path = utils.find_loader(tempdir)
 		if loader_path is None:
 			shutil.rmtree(tempdir)
-			return False
+			return
 		
 		new_loader_path = os.path.join(debug_dir, "ld-linux.so.2")
 		shutil.copyfile(loader_path, new_loader_path)
 		self.loader = Loader(new_loader_path)
 
 		shutil.rmtree(tempdir)
-		return True
+		return
 
 	def patchelf(self, debug_dir: str) -> None:
 		if self.loader:

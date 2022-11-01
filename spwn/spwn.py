@@ -37,8 +37,9 @@ class Spwn:
 			self.files.libc.maybe_unstrip()
 
 			if self.files.loader is None:
-				if self.files.get_loader(DEBUG_DIR):
-					self.files.loader.set_executable()
+				self.files.get_loader(DEBUG_DIR)
+			if self.files.loader is not None:
+				self.files.loader.set_executable()
 
 			self.files.patchelf(DEBUG_DIR)
 
