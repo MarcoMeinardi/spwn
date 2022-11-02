@@ -20,7 +20,7 @@ some more features).
    * libc version
    * potentially vulnerable functions
    * cryptographic constants
- * Check if there might be seccomp and run `seccomp-tools dump`
+   * seccomp rules
 
 ## Usage
 Go into the directory with the challenge files and run `spwn` or `spwn inter`
