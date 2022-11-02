@@ -14,8 +14,12 @@ some more features).
  * Set runpath and interpreter for the debug binary
  * Generate a basic script from a template
  * Interactively generate functions to interact with the binary
- * Print basic info about the files (`file`, `checksec`, libc
- version, potentially vulnerable functions)
+ * Print basic info about the files:
+   * `file`
+   * `checksec`
+   * libc version
+   * potentially vulnerable functions
+   * cryptographic constants
  * Check if there might be seccomp and run `seccomp-tools dump`
 
 ## Usage
@@ -34,7 +38,8 @@ as fast as possible, you cannot waste any time :)
 ## Installation
 Non python tools:
 ```bash
-sudo apt install patchelf gem
+sudo apt update
+sudo apt install patchelf elfutils ruby-dev
 sudo gem install seccomp-tools
 ```
 Main package:

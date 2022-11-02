@@ -11,7 +11,8 @@ from spwn.loader import Loader
 
 
 class FileManager:
-	def __init__(self):
+	def __init__(self, configs: dict):
+		self.configs = configs
 		self.binary = None
 		self.libc = None
 		self.loader = None
@@ -101,7 +102,7 @@ class FileManager:
 			self.libc = None
 			self.loader = None
 
-	def get_loader(self, debug_dir: str) -> None:
+	def get_loader(self) -> None:
 		ubuntu_version = self.libc.get_ubuntu_version_string()
 		if ubuntu_version is None:
 			print("[!] Cannot get ubuntu packet name for loader")
@@ -130,19 +131,19 @@ class FileManager:
 			shutil.rmtree(tempdir)
 			return
 		
-		new_loader_path = os.path.join(debug_dir, "ld-linux.so.2")
+		new_loader_path = os.path.join(self.configs["debug_dir"], "ld-linux.so.2")
 		shutil.copyfile(loader_path, new_loader_path)
 		self.loader = Loader(new_loader_path)
 
 		shutil.rmtree(tempdir)
 		return
 
-	def patchelf(self, debug_dir: str) -> None:
+	def patchelf(self) -> None:
 		if self.loader:
-			if os.system(f"patchelf --set-interpreter {self.loader.debug_name} --set-rpath {debug_dir} {self.binary.debug_name}") != 0:
+			if os.system(f'patchelf --set-interpreter {self.loader.debug_name} --set-rpath {self.configs["debug_dir"]} {self.binary.debug_name}') != 0:
 				print("[!] patchelf failed")
 		else:
-			if os.system(f"patchelf --set-rpath {debug_dir} {self.binary.debug_name}") != 0:
+			if os.system(f'patchelf --set-rpath {self.configs["debug_dir"]} {self.binary.debug_name}') != 0:
 				print("[!] patchelf failed")
 
 

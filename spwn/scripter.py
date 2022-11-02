@@ -11,7 +11,7 @@ class Scripter:
 			self.template = f.read()
 		
 
-	def create_script(self, debug_dir: str) -> None:
+	def create_script(self) -> None:
 		if self.create_interactions:
 			self.create_menu_interaction_functions()
 
@@ -19,7 +19,7 @@ class Scripter:
 			self.script = self.template.format(
 				binary=self.files.binary.name,
 				libc=self.files.libc.name,
-				debug_dir=debug_dir,
+				debug_dir=self.files.configs["debug_dir"],
 				interactions=self.interactions
 			)
 
@@ -34,8 +34,8 @@ class Scripter:
 			)
 
 
-	def save_script(self, output_file: str) -> None:
-		with open(output_file, "w") as f:
+	def save_script(self) -> None:
+		with open(self.files.configs["script_file"], "w") as f:
 			f.write(self.script)
 
 	def create_menu_interaction_functions(self) -> None:

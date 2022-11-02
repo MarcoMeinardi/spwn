@@ -1,5 +1,6 @@
 {
 	"debug_dir": "debug",
 	"script_file": "a.py",
-	"template_file": "~/.config/spwn/template.py"
+	"template_file": "~/.config/spwn/template.py",
+	"yara_rules": "~/.config/spwn/findcrypt3.rules"
 }

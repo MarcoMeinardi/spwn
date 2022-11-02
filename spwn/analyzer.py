@@ -1,4 +1,5 @@
 import subprocess
+import yara
 
 dangerous_functions_check = ["system", "execve", "gets", "memfrob"]
 # Long term TODO: analyze the code to understand if printf and scanf are properly used (constant first arg)
@@ -12,6 +13,7 @@ class Analyzer:
 		self.run_checksec()
 		self.print_libc_version()
 		self.print_dangerous_functions()
+		self.run_yara()
 		print()
 
 	def post_analisys(self) -> None:
@@ -36,6 +38,16 @@ class Analyzer:
 			print("[!] There are some dangerous functions:")
 			print(" ".join(dangerous_functions))
 
+	def run_yara(self) -> None:
+		rules = yara.compile(self.files.configs["yara_rules"])
+		with open(self.files.binary.name, "rb") as f:
+			matches = rules.match(data=f.read())
+
+		if matches:
+			print("[!] yara found something")
+			for match in matches:
+				print(match)
+
 	def check_and_print_seccomp(self) -> None:
 		for function in self.files.binary.pwnfile.sym:
 			if "seccomp" in function or "prctl" in function:
@@ -50,4 +62,6 @@ class Analyzer:
 			print(subprocess.check_output(seccomp_cmd, timeout=1, shell=True, stderr=subprocess.STDOUT, encoding="utf8"))
 		except subprocess.TimeoutExpired as e:
 			print(f"[!] {e}")
+
+	
 		

@@ -10,14 +10,13 @@ from spwn.scripter import Scripter
 
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
 configs = json.load(open(CONFIG_PATH))
-DEBUG_DIR     = configs["debug_dir"]
-SCRIPT_FILE   = configs["script_file"]
-TEMPLATE_FILE = os.path.expanduser(configs["template_file"])
+configs["template_file"] = os.path.expanduser(configs["template_file"])
+configs["yara_rules"] = os.path.expanduser(configs["yara_rules"])
 
 class Spwn:
 	def __init__(self, create_interactions: bool):
 		self.create_interactions = create_interactions
-		self.files = FileManager()
+		self.files = FileManager(configs)
 		self.files.auto_recognize()
 
 		print("[*] Binary: ", self.files.binary.name)
@@ -37,70 +36,70 @@ class Spwn:
 			self.files.libc.maybe_unstrip()
 
 			if self.files.loader is None:
-				self.files.get_loader(DEBUG_DIR)
+				self.files.get_loader()
 			if self.files.loader is not None:
 				self.files.loader.set_executable()
 
-			self.files.patchelf(DEBUG_DIR)
+			self.files.patchelf()
 
 		self.files.binary.set_executable()
 		analyzer.post_analisys()
 
-		self.scripter = Scripter(self.files, TEMPLATE_FILE, create_interactions=self.create_interactions)
-		self.scripter.create_script(DEBUG_DIR)
+		self.scripter = Scripter(self.files, configs["template_file"], create_interactions=self.create_interactions)
+		self.scripter.create_script()
 		self.create_script_file()
-		self.scripter.save_script(SCRIPT_FILE)
+		self.scripter.save_script()
 
 	def create_debug_dir(self) -> None:
-		global DEBUG_DIR
-		while os.path.exists(DEBUG_DIR):
-			if os.path.isdir(DEBUG_DIR):
-				print(f"[!] {DEBUG_DIR} directory already exists, enter a new name or press enter to use it anyways")
+		global configs
+		while os.path.exists(configs["debug_dir"]):
+			if os.path.isdir(configs["debug_dir"]):
+				print(f'[!] {configs["debug_dir"]} directory already exists, enter a new name or press enter to use it anyways')
 				new_dir = input("> ").strip()
 				if not new_dir:
 					break
-				DEBUG_DIR = new_dir
+				configs["debug_dir"] = new_dir
 			else:
-				print(f"[!] {DEBUG_DIR} file already exists, enter a new name")
+				print(f'[!] {configs["debug_dir"]} file already exists, enter a new name')
 				new_dir = input("> ").strip()
 				if not new_dir:
-					print(f"[!] {DEBUG_DIR} is not a directory and cannot be overwritten")
+					print(f'[!] {configs["debug_dir"]} is not a directory and cannot be overwritten')
 				else:
-					DEBUG_DIR = new_dir
+					configs["debug_dir"] = new_dir
 
-		if not os.path.exists(DEBUG_DIR):
-			os.mkdir(DEBUG_DIR)
+		if not os.path.exists(configs["debug_dir"]):
+			os.mkdir(configs["debug_dir"])
 
 	def create_script_file(self) -> None:
-		global SCRIPT_FILE
-		while os.path.exists(SCRIPT_FILE):
-			if os.path.isfile(SCRIPT_FILE):
-				print(f"[!] {SCRIPT_FILE} file already exists, enter a new name or press enter to overwrite")
+		global configs
+		while os.path.exists(configs["script_file"]):
+			if os.path.isfile(configs["script_file"]):
+				print(f'[!] {configs["script_file"]} file already exists, enter a new name or press enter to overwrite')
 				new_file = input("> ").strip()
 				if not new_file:
 					break
-				SCRIPT_FILE = new_file
+				configs["script_file"] = new_file
 			else:
-				print(f"[!] {SCRIPT_FILE} already exists, enter a new name")
+				print(f'[!] {configs["script_file"]} already exists, enter a new name')
 				new_file = input("> ").strip()
 				if not new_file:
-					print(f"[!] {SCRIPT_FILE} is not a file and cannot be overwritten")
+					print(f'[!] {configs["script_file"]} is not a file and cannot be overwritten')
 				else:
-					SCRIPT_FILE = new_file
+					configs["script_file"] = new_file
 
 	def populate_debug_dir(self) -> None:
-		shutil.copy(self.files.binary.name, os.path.join(DEBUG_DIR, self.files.binary.name))
-		self.files.binary.debug_name = os.path.join(DEBUG_DIR, self.files.binary.name)
+		shutil.copy(self.files.binary.name, os.path.join(configs["debug_dir"], self.files.binary.name))
+		self.files.binary.debug_name = os.path.join(configs["debug_dir"], self.files.binary.name)
 
-		shutil.copy(self.files.libc.name, os.path.join(DEBUG_DIR, "libc.so.6"))
-		self.files.libc.debug_name = os.path.join(DEBUG_DIR, "libc.so.6")
+		shutil.copy(self.files.libc.name, os.path.join(configs["debug_dir"], "libc.so.6"))
+		self.files.libc.debug_name = os.path.join(configs["debug_dir"], "libc.so.6")
 
 		if self.files.loader:
-			shutil.copy(self.files.loader.name, os.path.join(DEBUG_DIR, "ld-linux.so.2"))
-			self.files.loader.debug_name = os.path.join(DEBUG_DIR, "ld-linux.so.2")
+			shutil.copy(self.files.loader.name, os.path.join(configs["debug_dir"], "ld-linux.so.2"))
+			self.files.loader.debug_name = os.path.join(configs["debug_dir"], "ld-linux.so.2")
 
 		for library in self.files.other_libraries:
-			shutil.copy(library, os.path.join(DEBUG_DIR, library))
+			shutil.copy(library, os.path.join(configs["debug_dir"], library))
 		
 help_msg = r"""
 spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn
