@@ -71,13 +71,15 @@ class InteractionFunction:
 			print("[!] Cannot be empty")
 
 	def ask_variable(self) -> bool:
-		var_type = utils.ask_list("Variable type", ["int", "bytes"], "( Empty to end function )")
-		if var_type is None: return False
+		variable_name = utils.ask_string("Variable name ( Empty to end function )", can_skip=True)
+		if not variable_name: return False
+		variable_type = utils.ask_list("Variable type", ["int", "bytes"], can_skip=False)
+		variable_interaction = utils.ask_string("Send after", can_skip=False)
 
-		if var_type == "int":
-			self.variables.append(IntVariable())
-		elif var_type == "bytes":
-			self.variables.append(ByteVariable())
+		if variable_type == "int":
+			self.variables.append(IntVariable(variable_name, variable_interaction))
+		elif variable_type == "bytes":
+			self.variables.append(ByteVariable(variable_name, variable_interaction))
 		else:
 			assert False, "???"
 		
@@ -93,23 +95,13 @@ class InteractionFunction:
 
 
 class AbstractVariable:
-	def __init__(self):
-		self.ask_name()
-		self.ask_interaction()
-
-	def ask_name(self) -> None:
-		while True:
-			self.name = input("Variable name > ")[:-1]
-			if self.name: break
-			print("[!] Cannot be empty")
-
-	def ask_interaction(self) -> None:
-		self.interaction = input("Send after > ")[:-1]
-		self.interaction = self.interaction if self.interaction else None
+	def __init__(self, name, interaction):
+		self.name = name
+		self.interaction = interaction
 
 class IntVariable(AbstractVariable):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, name, interaction):
+		super().__init__(name, interaction)
 
 	def emit_interaction(self) -> str:
 		if self.interaction:
@@ -119,8 +111,8 @@ class IntVariable(AbstractVariable):
 
 
 class ByteVariable(AbstractVariable):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, name, interaction):
+		super().__init__(name, interaction)
 
 	def emit_interaction(self) -> str:
 		if self.interaction:

@@ -32,7 +32,7 @@ def ask_list_delete(msg: str, options: list[str], can_skip: bool) -> str | None:
 
 	return ans
 
-def ask_list(msg: str, options: list[str], extra_msg: str="") -> str | None:
+def ask_list(msg: str, options: list[str], can_skip:bool) -> str | None:
 	if len(options) == 1:
 		ans = options[0]
 		return ans
@@ -42,11 +42,8 @@ def ask_list(msg: str, options: list[str], extra_msg: str="") -> str | None:
 		print(f"[{n + 1}] {op}")
 
 	while True:
-		if extra_msg:
-			resp = input(f"{extra_msg} > ").strip()
-		else:
-			resp = input("> ").strip()
-		if not resp:
+		resp = input("> ").strip()
+		if not resp and can_skip:
 			return None
 
 		if resp.isdigit():
@@ -61,6 +58,16 @@ def ask_list(msg: str, options: list[str], extra_msg: str="") -> str | None:
 
 	return ans
 
+def ask_string(msg: str, can_skip: bool) -> str | None:
+	resp = input(f"{msg} > ")[:-1]
+	if resp: return resp
+	elif can_skip: return None
+
+	while True:
+		print("[!] Canno be empty")
+		resp = input("> ")[:-1]
+		if resp:
+			return resp
 
 def download_package(package_url: str, tempdir: str) -> bool:
 	try:
