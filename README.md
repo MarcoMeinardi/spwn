@@ -23,9 +23,9 @@ some more features).
    * seccomp rules
 
 ## Usage
-Go into the directory with the challenge files and run `spwn` or `spwn inter`
-if you want to create the interaction funcitons or `spwn help` to view the
-help message.
+Go into the directory with the challenge files and run `spwn`, `spwn inter`
+(or `i` or `-i`) if you want to create the interaction funcitons or
+`spwn help` (or `h` or `-h`) to view the help message.
 
 If the files have weird namings (such as the libc name not starting with
 libc), the autodetection will fail and fall in the manual selection,
@@ -71,8 +71,9 @@ you can modify to your liking.
 The template path can be directly edited in the config file, however,
 if you want to change the location of the config file, you have to
 edit the source code. The variable is `CONFIG_PATH` in `spwn.py`.
-It's location should be `~/.local/lib/python3.{python-version}/site
--packages/spwn/spwn.py`. Note that if you reinstall or update `spwn`,
+It's location should be
+`~/.local/lib/python3.{python-version}/site-packages/spwn/spwn.py`.
+Note that if you reinstall or update `spwn`,
 this variable will be overwritten.
 
 
