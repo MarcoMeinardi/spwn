@@ -2,7 +2,7 @@ import subprocess
 import re
 import yara
 
-dangerous_functions_check = ["system", "execve", "gets", "memfrob"]
+dangerous_functions_check = ["system", "execve", "gets", "ptrace", "memfrob"]
 # Long term TODO: analyze the code to understand if printf and scanf are properly used (constant first arg)
 
 class Analyzer:
