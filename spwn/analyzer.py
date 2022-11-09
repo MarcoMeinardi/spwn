@@ -1,4 +1,5 @@
 import subprocess
+import re
 import yara
 
 dangerous_functions_check = ["system", "execve", "gets", "memfrob"]
@@ -21,7 +22,21 @@ class Analyzer:
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
-		print(subprocess.check_output(["file", self.files.binary.name]).decode().strip())
+		file_output = subprocess.check_output(["file", self.files.binary.name], encoding="utf8")
+		type_and_arch = re.search(r"(ELF.*?), (.*?),", file_output)
+		linking = re.search(r"(dynamically linked|statically linked)", file_output)
+		debug_info = re.search(r"with debug_info", file_output)
+		stripped = re.search(r"(not )?stripped", file_output)
+
+		if not type_and_arch or not linking or not stripped:
+			print(file_output.strip())
+		else:
+			print(type_and_arch.group(1))
+			print(type_and_arch.group(2))
+			print(linking.group())
+			if debug_info:
+				print(debug_info.group())
+			print(stripped.group())
 	
 	def run_checksec(self) -> None:
 		print(f"[*] checksec {self.files.binary.name}")
