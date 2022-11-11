@@ -14,13 +14,13 @@ sl  = lambda *x: r.sendline(*x)
 sn  = lambda *x: r.send(*x)
 
 if args.REMOTE:
-    r = connect("")
+	r = connect("")
 elif args.GDB:
-    r = gdb.debug(f"{debug_dir}/{{binary_name}}", """
-        c
-    """, aslr=False)
+	r = gdb.debug(f"{debug_dir}/{{binary_name}}", """
+		c
+	""", aslr=False)
 else:
-    r = process(f"{debug_dir}/{{binary_name}}")
+	r = process(f"{debug_dir}/{{binary_name}}")
 
 {interactions}
 
