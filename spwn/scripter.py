@@ -3,12 +3,13 @@ import spwn.utils as utils
 
 
 class Scripter:
-	def __init__(self, files: FileManager, template_filename: str, create_interactions: bool):
-		self.files = files
-		self.create_interactions = create_interactions
+	def __init__(self, files: FileManager | None, template_filename: str, create_interactions: bool):
 		self.interactions = ""
-		with open(template_filename) as f:
-			self.template = f.read()
+		if files:
+			self.files = files
+			self.create_interactions = create_interactions
+			with open(template_filename) as f:
+				self.template = f.read()
 		
 
 	def create_script(self) -> None:
@@ -37,6 +38,12 @@ class Scripter:
 	def save_script(self) -> None:
 		with open(self.files.configs["script_file"], "w") as f:
 			f.write(self.script)
+
+	def dump_interactions(self):
+		print()
+		print("-" * 50)
+		print(self.interactions, end='')
+		print("-" * 50)
 
 	def create_menu_interaction_functions(self) -> None:
 		menu_recvuntil = input("Menu recvuntil > ")[:-1]

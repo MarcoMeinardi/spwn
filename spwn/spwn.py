@@ -14,41 +14,51 @@ configs["template_file"] = os.path.expanduser(configs["template_file"])
 configs["yara_rules"] = os.path.expanduser(configs["yara_rules"])
 
 class Spwn:
-	def __init__(self, create_interactions: bool):
-		self.create_interactions = create_interactions
-		self.files = FileManager(configs)
-		self.files.auto_recognize()
+	def __init__(self, create_interactions: bool | None =None, interactions_only: bool=False):
+		if not interactions_only:
+			self.create_interactions = create_interactions
+			self.files = FileManager(configs)
+			self.files.auto_recognize()
 
-		print("[*] Binary: ", self.files.binary.name)
-		if self.files.libc: print("[*] Libc:   ", self.files.libc.name)
-		else: print("[!] No libc")
-		if self.files.loader: print("[*] Loader: ", self.files.loader.name)
-		else: print("[!] No loader")
-		if self.files.other_libraries: print("[*] Other:  ", self.files.other_libraries)
-		print()
+			print("[*] Binary: ", self.files.binary.name)
+			if self.files.libc: print("[*] Libc:   ", self.files.libc.name)
+			else: print("[!] No libc")
+			if self.files.loader: print("[*] Loader: ", self.files.loader.name)
+			else: print("[!] No loader")
+			if self.files.other_libraries: print("[*] Other:  ", self.files.other_libraries)
+			print()
+		else:
+			self.files = None
+
+		self.run()
 
 	def run(self) -> None:
-		analyzer = Analyzer(self.files)
-		analyzer.pre_analisys()
-		if self.files.libc:
-			self.create_debug_dir()
-			self.populate_debug_dir()
-			self.files.libc.maybe_unstrip()
+		if self.files:
+			analyzer = Analyzer(self.files)
+			analyzer.pre_analisys()
+			if self.files.libc:
+				self.create_debug_dir()
+				self.populate_debug_dir()
+				self.files.libc.maybe_unstrip()
 
-			if self.files.loader is None:
-				self.files.get_loader()
-			if self.files.loader is not None:
-				self.files.loader.set_executable()
+				if self.files.loader is None:
+					self.files.get_loader()
+				if self.files.loader is not None:
+					self.files.loader.set_executable()
 
-			self.files.patchelf()
+				self.files.patchelf()
 
-		self.files.binary.set_executable()
-		analyzer.post_analisys()
+			self.files.binary.set_executable()
+			analyzer.post_analisys()
 
-		self.scripter = Scripter(self.files, configs["template_file"], create_interactions=self.create_interactions)
-		self.scripter.create_script()
-		self.create_script_file()
-		self.scripter.save_script()
+			self.scripter = Scripter(self.files, configs["template_file"], create_interactions=self.create_interactions)
+			self.scripter.create_script()
+			self.create_script_file()
+			self.scripter.save_script()
+		else:
+			self.scripter = Scripter(None, None, None)
+			self.scripter.create_menu_interaction_functions()
+			self.scripter.dump_interactions()
 
 	def create_debug_dir(self) -> None:
 		global configs
@@ -105,11 +115,13 @@ help_msg = r"""
 spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn
 
 Usage:
-    spwn [inter|i|-i] [help|h|-h]
+    spwn [inter|i|-i] [help|h|-h] [ionly]
 	- inter:
 	    Interactively create interaction functions
 	- help:
 	    Print this message
+	- ionly:
+		Create the interaction functions, without doing any analisy
 
 Bug report: https://github.com/MarcoMeinardi/spwn/issues
 """[1:-1]
@@ -120,9 +132,11 @@ def print_help_msg():
 def main():
 	if "h" in sys.argv or "-h" in sys.argv or any("help" in arg for arg in sys.argv):
 		print_help_msg()
+	elif "io" in sys.argv or "-io" in sys.argv or any("ionly" in arg for arg in sys.argv):
+		Spwn(interactions_only=True)
 	elif "i" in sys.argv or "-i" in sys.argv or any("inter" in arg for arg in sys.argv):
-		Spwn(create_interactions=True).run()
+		Spwn(create_interactions=True)
 	else:
-		Spwn(create_interactions=False).run()
+		Spwn(create_interactions=False)
 
 	

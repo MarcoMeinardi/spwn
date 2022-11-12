@@ -23,9 +23,15 @@ some more features).
    * seccomp rules
 
 ## Usage
-Go into the directory with the challenge files and run `spwn`, `spwn inter`
-(or `i` or `-i`) if you want to create the interaction funcitons or
-`spwn help` (or `h` or `-h`) to view the help message.
+```
+spwn [inter|i|-i] [help|h|-h] [ionly|io|-io]
+	- inter:
+	    Interactively create interaction functions
+	- help:
+	    Print this message
+	- ionly:
+		Create the interaction functions, without doing any analisy
+```
 
 If the files have weird namings (such as the libc name not starting with
 libc), the autodetection will fail and fall in the manual selection,
