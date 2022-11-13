@@ -9,7 +9,7 @@ class Analyzer:
 	def __init__(self, files):
 		self.files = files
 
-	def pre_analisys(self) -> None:
+	def pre_analysis(self) -> None:
 		self.run_file()
 		self.run_checksec()
 		self.print_libc_version()
@@ -17,7 +17,7 @@ class Analyzer:
 		self.run_yara()
 		print()
 
-	def post_analisys(self) -> None:
+	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()
 
 	def run_file(self) -> None:

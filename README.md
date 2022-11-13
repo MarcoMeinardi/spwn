@@ -30,7 +30,7 @@ spwn [inter|i|-i] [help|h|-h] [ionly|io|-io]
 	- help:
 	    Print this message
 	- ionly:
-		Create the interaction functions, without doing any analisy
+		Create the interaction functions, without doing any analysis
 ```
 
 If the files have weird namings (such as the libc name not starting with

@@ -35,7 +35,7 @@ class Spwn:
 	def run(self) -> None:
 		if self.files:
 			analyzer = Analyzer(self.files)
-			analyzer.pre_analisys()
+			analyzer.pre_analysis()
 			if self.files.libc:
 				self.create_debug_dir()
 				self.populate_debug_dir()
@@ -49,7 +49,7 @@ class Spwn:
 				self.files.patchelf()
 
 			self.files.binary.set_executable()
-			analyzer.post_analisys()
+			analyzer.post_analysis()
 
 			self.scripter = Scripter(self.files, configs["template_file"], create_interactions=self.create_interactions)
 			self.scripter.create_script()
@@ -121,7 +121,7 @@ Usage:
 	- help:
 	    Print this message
 	- ionly:
-		Create the interaction functions, without doing any analisy
+		Create the interaction functions, without doing any analysis
 
 Bug report: https://github.com/MarcoMeinardi/spwn/issues
 """[1:-1]
