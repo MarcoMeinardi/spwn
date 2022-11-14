@@ -142,12 +142,12 @@ class FileManager:
 	def patchelf(self) -> None:
 		if self.loader:
 			try:
-				check_call(['patchelf', '--set-interpreter', self.loader.debug_name, '--set-rpath', self.configs["debug_dir"], self.binary.debug_name])
+				check_call(["patchelf", "--set-interpreter", self.loader.debug_name, "--set-rpath", self.configs["debug_dir"], self.binary.debug_name])
 			except CalledProcessError:
 				print("[!] patchelf failed")
 		else:
 			try:
-				check_call(['patchelf', '--set-rpath', self.configs["debug_dir"], self.binary.debug_name])
+				check_call(["patchelf", "--set-rpath", self.configs["debug_dir"], self.binary.debug_name])
 			except CalledProcessError:
 				print("[!] patchelf failed")
 
