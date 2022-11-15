@@ -1,7 +1,7 @@
 import pwn
 import requests
 import os
-from subprocess import check_call, CalledProcessError
+import subprocess
 
 def ask_list_delete(msg: str, options: list[str], can_skip: bool) -> str | None:
 	if len(options) == 1:
@@ -87,9 +87,9 @@ def download_package(package_url: str, tempdir: str) -> bool:
 	
 def extract_deb(tempdir: str) -> bool:
 	try:
-		check_call(["ar", "x", os.path.join(tempdir, "libc.deb"), "--output=" + tempdir])
+		subprocess.check_call(["ar", "x", os.path.join(tempdir, "libc.deb"), "--output=" + tempdir])
 		return True
-	except CalledProcessError:
+	except subprocess.CalledProcessError:
 		print("[!] Cannot extract .deb package")
 		return False
 
@@ -105,8 +105,8 @@ def find_and_extract_data(tempdir: str) -> bool:
 		return False
 
 	try:
-		check_call(["tar", "xf", os.path.join(tempdir, to_extract), "-C", tempdir])
-	except CalledProcessError:
+		subprocess.check_call(["tar", "xf", os.path.join(tempdir, to_extract), "-C", tempdir])
+	except subprocess.CalledProcessError:
 		print("[!] Cannot extract data archive")
 		return False
 
