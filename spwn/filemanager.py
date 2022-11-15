@@ -3,6 +3,7 @@ import shutil
 import pwn
 import os
 import tempfile
+from subprocess import check_call, CalledProcessError
 
 import spwn.utils as utils
 from spwn.binary import Binary
@@ -140,10 +141,14 @@ class FileManager:
 
 	def patchelf(self) -> None:
 		if self.loader:
-			if os.system(f'patchelf --set-interpreter {self.loader.debug_name} --set-rpath {self.configs["debug_dir"]} {self.binary.debug_name}') != 0:
+			try:
+				check_call(["patchelf", "--set-interpreter", self.loader.debug_name, "--set-rpath", self.configs["debug_dir"], self.binary.debug_name])
+			except CalledProcessError:
 				print("[!] patchelf failed")
 		else:
-			if os.system(f'patchelf --set-rpath {self.configs["debug_dir"]} {self.binary.debug_name}') != 0:
+			try:
+				check_call(["patchelf", "--set-rpath", self.configs["debug_dir"], self.binary.debug_name])
+			except CalledProcessError:
 				print("[!] patchelf failed")
 
 
