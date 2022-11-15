@@ -21,17 +21,25 @@ class CreateConfigs(install):
 			os.mkdir(configs_dir)
 
 		configs_file = os.path.expanduser("~/.config/spwn/config.json")
+		default_configs_file = os.path.expanduser("~/.config/spwn/.default_config.json")
 		template_file = os.path.expanduser("~/.config/spwn/template.py")
 		default_configs_path = os.path.join(os.path.dirname(__file__), "default-config.json")
+
 		with open(default_configs_path) as f:
 			default_configs = json.load(f)
+
+		with open(default_configs_file, "w") as f:
+			json.dump(default_configs, f, indent='\t')
+
 		if not os.path.exists(configs_file):
 			with open(configs_file, "w") as f:
 				json.dump(default_configs, f, indent='\t')
 		else:
 			with open(configs_file) as f:
 				user_configs = json.load(f)
+				
 			new_configs = default_configs | user_configs
+
 			with open(configs_file, "w") as f:
 				json.dump(new_configs, f, indent='\t')
 			

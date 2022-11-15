@@ -2,5 +2,8 @@
 	"debug_dir": "debug",
 	"script_file": "a.py",
 	"template_file": "~/.config/spwn/template.py",
-	"yara_rules": "~/.config/spwn/findcrypt3.rules"
+	"yara_rules": "~/.config/spwn/findcrypt3.rules",
+	"ropper_additional_args": "--nocolor > gadgets",
+	"ropgadget_additional_args": "> gadgets",
+	"one_gadget_additional_args": "> onegadgets"
 }

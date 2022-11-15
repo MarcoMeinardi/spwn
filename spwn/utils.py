@@ -122,3 +122,6 @@ def find_loader(tempdir: str) -> str | None:
 
 	print("[!] Cannot find loader inside deb package")
 	return None
+
+def strtobool(st) -> bool:
+	return str(st).lower() in ("yes", "true", "t", "1")

@@ -1,5 +1,3 @@
-import argparse
-import json
 import os
 import shutil
 import sys
@@ -7,11 +5,12 @@ import sys
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
+from spwn.config_manager import ConfigManager
+from spwn.prog_runner import ProgRunner
+from spwn.cmd_parser import inflate_arg_parser
 
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
-configs = json.load(open(CONFIG_PATH))
-configs["template_file"] = os.path.expanduser(configs["template_file"])
-configs["yara_rules"] = os.path.expanduser(configs["yara_rules"])
+configs = ConfigManager(CONFIG_PATH)
 
 class Spwn:
 	def __init__(self, create_interactions: bool | None =None, interactions_only: bool=False):
@@ -59,6 +58,9 @@ class Spwn:
 			self.scripter = Scripter(None, None, None)
 			self.scripter.create_menu_interaction_functions()
 			self.scripter.dump_interactions()
+
+		self.progrunner = ProgRunner(configs, self.files.binary, self.files.libc)
+		self.progrunner.execute()
 
 	def create_debug_dir(self) -> None:
 		global configs
@@ -113,30 +115,31 @@ class Spwn:
 		
 
 def main():
-	parser = argparse.ArgumentParser(
-		prog = "spwn",
-		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn",
-		epilog = "Bug report: https://github.com/MarcoMeinardi/spwn/issues",
-	)
-
-	parser.add_argument(
-		"-i", "--inter",
-		action = "store_true",
-		help = "Interactively create interaction functions",
-	)
-
-	parser.add_argument(
-		"-io", "--ionly",
-		action = "store_true",
-		help = "Create the interaction functions, without doing any analysis",
-	)
+	parser = inflate_arg_parser()
 
 	args = parser.parse_args(sys.argv[1:])
 
-	if args.ionly:
-		Spwn(interactions_only=True)
-	elif args.inter:
-		Spwn(create_interactions=True)
+	if not args.subparsers_called:
+		if args.ionly:
+			Spwn(interactions_only=True)
+		else:
+			Spwn(create_interactions=args.inter)
 	else:
-		Spwn(create_interactions=False)
+		if args.list:
+			print("[*] Available keys:")
+			print("\t\n".join(configs.keys()))
+		elif args.set:
+			key = args.set[0]
+			value = " ".join(args.set[1:])
+			configs[key] = value
+			print(f"[*] {key} set to {value}")
+		elif args.get:
+			key = args.get[0]
+			print(f"[*] {key} = {configs[key]}")
+		elif args.reset:
+			key = args.reset[0]
+			configs.reset(key)
+			print(f"[*] {key} reset to default value of {configs[key]}")
+
+
 
