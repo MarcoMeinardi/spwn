@@ -71,10 +71,10 @@ class Analyzer:
 
 	def run_seccomptools(self) -> None:
 		print("[!] Possible seccomp found")
-		seccomp_cmd = f"seccomp-tools dump ./{self.files.binary.name} < /dev/null"
-		print(f"[*] {seccomp_cmd}")
+		seccomp_cmd = ["seccomp-tools", "dump", "./" + self.files.binary.name]
+		print(f"[*] {' '.join(seccomp_cmd)}")
 		try:
-			print(subprocess.check_output(seccomp_cmd, timeout=1, shell=True, stderr=subprocess.STDOUT, encoding="utf8"))
+			print(subprocess.check_output(seccomp_cmd, timeout=1, stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT, encoding="utf8"))
 		except subprocess.TimeoutExpired as e:
 			print(f"[!] {e}")
 
