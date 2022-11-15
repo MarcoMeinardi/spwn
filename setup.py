@@ -2,6 +2,7 @@ import setuptools
 from setuptools.command.install import install
 import os
 import requests
+import json
 
 # Copy configurations in ~/.config/spwn
 class CreateConfigs(install):
@@ -21,12 +22,19 @@ class CreateConfigs(install):
 
 		configs_file = os.path.expanduser("~/.config/spwn/config.json")
 		template_file = os.path.expanduser("~/.config/spwn/template.py")
+		default_configs_path = os.path.join(os.path.dirname(__file__), "default-config.json")
+		with open(default_configs_path) as f:
+			default_configs = json.load(f)
 		if not os.path.exists(configs_file):
-			default_configs_path = os.path.join(os.path.dirname(__file__), "default-config.json")
-			with open(default_configs_path) as f:
-				configs = f.read()
 			with open(configs_file, "w") as f:
-				f.write(configs)
+				json.dump(default_configs, f, indent='\t')
+		else:
+			with open(configs_file) as f:
+				user_configs = json.load(f)
+			new_configs = default_configs | user_configs
+			with open(configs_file, "w") as f:
+				json.dump(new_configs, f, indent='\t')
+			
 		if not os.path.exists(template_file):
 			default_template_path = os.path.join(os.path.dirname(__file__), "default-template.py")
 			with open(default_template_path) as f:
