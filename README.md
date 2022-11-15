@@ -1,8 +1,8 @@
 # Spwn
 
-This repository started as a tranlation of
+This repository started as a translation of
 [pwninit](https://github.com/io12/pwninit). It has been created because I
-love the utilities provided by pwninit, but I'm to lazy to learn Rust and
+love the utilities provided by pwninit, but I'm too lazy to learn Rust and
 I wanted to customize it, so I rewrote it in python (and added
 some more features).
 
