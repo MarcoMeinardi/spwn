@@ -1,6 +1,8 @@
+import argparse
+import json
 import os
 import shutil
-import json
+import sys
 
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
@@ -111,9 +113,6 @@ class Spwn:
 		
 
 def main():
-	import argparse
-	import sys
-
 	parser = argparse.ArgumentParser(
 		prog = "spwn",
 		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn",
