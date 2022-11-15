@@ -14,6 +14,9 @@ class ProgRunner:
 		self.libc = libc
 
 	def execute(self):
+		# TODO figure out a way to sanitize this or prevent arbitrary code execution
+		print("[!] Note that executable names are not sanitized, so arbitrary code execution is possible")
+
 		if strtobool(self.configs["autorun_ropper"]):
 			self.run_ropper()
 		if strtobool(self.configs["autorun_ropgadget"]):
