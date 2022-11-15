@@ -22,7 +22,7 @@ class Analyzer:
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
-		file_output = subprocess.check_output(["file", self.files.binary.name], encoding="utf8")
+		file_output = subprocess.check_output(["file", self.files.binary.name], encoding="latin1")
 		type_and_arch = re.search(r"(ELF.*?), (.*?),", file_output)
 		linking = re.search(r"(dynamically linked|statically linked)", file_output)
 		debug_info = re.search(r"with debug_info", file_output)
@@ -71,10 +71,9 @@ class Analyzer:
 
 	def run_seccomptools(self) -> None:
 		print("[!] Possible seccomp found")
-		seccomp_cmd = f"seccomp-tools dump ./{self.files.binary.name} < /dev/null"
-		print(f"[*] {seccomp_cmd}")
+		print(f"[*] seccomp-tools dump ./{self.files.binary.debug_name} < /dev/null")
 		try:
-			print(subprocess.check_output(seccomp_cmd, timeout=1, shell=True, stderr=subprocess.STDOUT, encoding="utf8"))
+			print(subprocess.check_output(["seccomp-tools", "dump", f"./{self.files.binary.debug_name}"], timeout=1, stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT, encoding="latin1"))
 		except subprocess.TimeoutExpired as e:
 			print(f"[!] {e}")
 
