@@ -1,7 +1,5 @@
-from code import InteractiveConsole
 import os
 import shutil
-import sys
 import json
 
 from spwn.filemanager import FileManager
@@ -111,32 +109,35 @@ class Spwn:
 		for library in self.files.other_libraries:
 			shutil.copy(library, os.path.join(configs["debug_dir"], library))
 		
-help_msg = r"""
-spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn
 
-Usage:
-    spwn [inter|i|-i] [help|h|-h] [ionly]
-	- inter:
-	    Interactively create interaction functions
-	- help:
-	    Print this message
-	- ionly:
-		Create the interaction functions, without doing any analysis
-
-Bug report: https://github.com/MarcoMeinardi/spwn/issues
-"""[1:-1]
-
-def print_help_msg():
-	print(help_msg)
-	
 def main():
-	if "h" in sys.argv or "-h" in sys.argv or any("help" in arg for arg in sys.argv):
-		print_help_msg()
-	elif "io" in sys.argv or "-io" in sys.argv or any("ionly" in arg for arg in sys.argv):
+	import argparse
+	import sys
+
+	parser = argparse.ArgumentParser(
+		prog = "spwn",
+		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn",
+		epilog = "Bug report: https://github.com/MarcoMeinardi/spwn/issues",
+	)
+
+	parser.add_argument(
+		"-i", "--inter",
+		action = "store_true",
+		help = "Interactively create interaction functions",
+	)
+
+	parser.add_argument(
+		"-io", "--ionly",
+		action = "store_true",
+		help = "Create the interaction functions, without doing any analysis",
+	)
+
+	args = parser.parse_args(sys.argv[1:])
+
+	if args.ionly:
 		Spwn(interactions_only=True)
-	elif "i" in sys.argv or "-i" in sys.argv or any("inter" in arg for arg in sys.argv):
+	elif args.inter:
 		Spwn(create_interactions=True)
 	else:
 		Spwn(create_interactions=False)
 
-	
