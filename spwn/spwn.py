@@ -14,18 +14,18 @@ configs["template_file"] = os.path.expanduser(configs["template_file"])
 configs["yara_rules"] = os.path.expanduser(configs["yara_rules"])
 
 class Spwn:
-	def __init__(self, create_interactions: bool | None =None, interactions_only: bool=False):
+	def __init__(self, create_interactions: bool=False, interactions_only: bool=False):
 		if not interactions_only:
 			self.create_interactions = create_interactions
 			self.files = FileManager(configs)
 			self.files.auto_recognize()
 
-			print("[*] Binary: ", self.files.binary.name)
-			if self.files.libc: print("[*] Libc:   ", self.files.libc.name)
+			print("[*] Binary:", self.files.binary.name)
+			if self.files.libc: print("[*] Libc:  ", self.files.libc.name)
 			else: print("[!] No libc")
-			if self.files.loader: print("[*] Loader: ", self.files.loader.name)
+			if self.files.loader: print("[*] Loader:", self.files.loader.name)
 			else: print("[!] No loader")
-			if self.files.other_libraries: print("[*] Other:  ", self.files.other_libraries)
+			if self.files.other_libraries: print("[*] Other: ", self.files.other_libraries)
 			print()
 		else:
 			self.files = None
@@ -34,7 +34,7 @@ class Spwn:
 
 	def run(self) -> None:
 		if self.files:
-			analyzer = Analyzer(self.files)
+			analyzer = Analyzer(configs, self.files)
 			analyzer.pre_analysis()
 			if self.files.libc:
 				self.create_debug_dir()
@@ -51,12 +51,12 @@ class Spwn:
 			self.files.binary.set_executable()
 			analyzer.post_analysis()
 
-			self.scripter = Scripter(self.files, configs["template_file"], create_interactions=self.create_interactions)
+			self.scripter = Scripter(configs, self.files, create_interactions=self.create_interactions)
 			self.scripter.create_script()
 			self.create_script_file()
 			self.scripter.save_script()
 		else:
-			self.scripter = Scripter(None, None, None)
+			self.scripter = Scripter(configs)
 			self.scripter.create_menu_interaction_functions()
 			self.scripter.dump_interactions()
 
@@ -115,7 +115,7 @@ help_msg = r"""
 spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn
 
 Usage:
-    spwn [inter|i|-i] [help|h|-h] [ionly]
+    spwn [inter|i|-i] [help|h|-h] [ionly|io|-io]
 	- inter:
 	    Interactively create interaction functions
 	- help:
@@ -137,6 +137,6 @@ def main():
 	elif "i" in sys.argv or "-i" in sys.argv or any("inter" in arg for arg in sys.argv):
 		Spwn(create_interactions=True)
 	else:
-		Spwn(create_interactions=False)
+		Spwn()
 
 	

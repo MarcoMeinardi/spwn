@@ -1,12 +1,16 @@
 import subprocess
+import os, signal
 import re
 import yara
+
+from spwn.filemanager import FileManager
 
 dangerous_functions_check = ["system", "execve", "gets", "ptrace", "memfrob"]
 # Long term TODO: analyze the code to understand if printf and scanf are properly used (constant first arg)
 
 class Analyzer:
-	def __init__(self, files):
+	def __init__(self, configs: dict, files: FileManager):
+		self.configs = configs
 		self.files = files
 
 	def pre_analysis(self) -> None:
@@ -15,10 +19,12 @@ class Analyzer:
 		self.print_libc_version()
 		self.print_dangerous_functions()
 		self.run_yara()
+		self.run_custom_commands(self.configs["preanalysis_commands"])
 		print()
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()
+		self.run_custom_commands(self.configs["postanalysis_commands"])
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
@@ -54,7 +60,7 @@ class Analyzer:
 			print(" ".join(dangerous_functions))
 
 	def run_yara(self) -> None:
-		rules = yara.compile(self.files.configs["yara_rules"])
+		rules = yara.compile(self.configs["yara_rules"])
 		with open(self.files.binary.name, "rb") as f:
 			matches = rules.match(data=f.read())
 
@@ -77,5 +83,16 @@ class Analyzer:
 		except subprocess.TimeoutExpired as e:
 			print(f"[!] {e}")
 
-	
-		
+	def run_custom_commands(self, commands: list[str]) -> None:
+		for command, timeout in commands:
+			command = command.format(binary=self.files.binary.name, debug_binary=self.files.binary.debug_name)
+			if timeout:
+				print(f"[*] {command}")
+				try:
+					# Use exec command, otherwise, because of `shell=True`, the process wouldn't be killed on timeout
+					p = subprocess.run(f"exec {command}", shell=True, timeout=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="latin-1")
+					print(p.stdout)
+				except subprocess.TimeoutExpired:
+					print("[!] Timeout")
+			else:
+				subprocess.Popen(command, shell=True)

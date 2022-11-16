@@ -1,6 +1,5 @@
-from json import load
-import shutil
 import pwn
+import shutil
 import os
 import tempfile
 import subprocess

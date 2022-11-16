@@ -82,6 +82,17 @@ It's location should be
 Note that if you reinstall or update `spwn`,
 this variable will be overwritten.
 
+For the pre and post analysis commands, they are in the form
+`[command, timeout]`, the default commands, are just examples that
+do nothing. The `command` should contain the `"{binary}"` or
+`"{debug_binary}"` string in order to be formatted with the correct
+executable path. You should use `debug_binary` only if the binary
+will be run. If you set `timeout` to `false`, the program gets
+run with `subprocess.Popen`, thus the analysis will go on while
+running it, this might be used, for example, to launch the decompiler.
+If you want to run the program without a timeout (discouraged) you
+can set it to `null`.
+
 
 If you have any question or feature request, feel free to ask
 [here](https://github.com/MarcoMeinardi/spwn/issues).

@@ -3,12 +3,12 @@ import spwn.utils as utils
 
 
 class Scripter:
-	def __init__(self, files: FileManager | None, template_filename: str, create_interactions: bool):
+	def __init__(self, configs: dict, files: FileManager | None=None, create_interactions: bool=False):
 		self.interactions = ""
 		if files:
 			self.files = files
 			self.create_interactions = create_interactions
-			with open(template_filename) as f:
+			with open(configs["template_file"]) as f:
 				self.template = f.read()
 		
 
