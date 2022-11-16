@@ -132,7 +132,7 @@ class FileManager:
 			shutil.rmtree(tempdir)
 			return
 		
-		new_loader_path = os.path.join(self.configs["debug_dir"], "ld-linux.so.2")
+		new_loader_path = os.path.join(self.configs.debug_dir, "ld-linux.so.2")
 		shutil.copyfile(loader_path, new_loader_path)
 		self.loader = Loader(new_loader_path)
 
@@ -142,12 +142,12 @@ class FileManager:
 	def patchelf(self) -> None:
 		if self.loader:
 			try:
-				subprocess.check_call(["patchelf", "--set-interpreter", self.loader.debug_name, "--set-rpath", self.configs["debug_dir"], self.binary.debug_name])
+				subprocess.check_call(["patchelf", "--set-interpreter", self.loader.debug_name, "--set-rpath", self.configs.debug_dir, self.binary.debug_name])
 			except subprocess.CalledProcessError:
 				print("[!] patchelf failed")
 		else:
 			try:
-				subprocess.check_call(["patchelf", "--set-rpath", self.configs["debug_dir"], self.binary.debug_name])
+				subprocess.check_call(["patchelf", "--set-rpath", self.configs.debug_dir, self.binary.debug_name])
 			except subprocess.CalledProcessError:
 				print("[!] patchelf failed")
 

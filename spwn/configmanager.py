@@ -1,16 +1,27 @@
 import json
 import os
+from typing import Any
 
 class ConfigManager:
 	def __init__(self, config_path) -> None:
-		self.config_path = os.path.expanduser(config_path)
-		self.configs = json.load(open(self.config_path))
-		for conf in self.configs:
-			if isinstance(self.configs[conf], str) and self.configs[conf].startswith("~/"):
-				self.configs[conf] = os.path.expanduser(self.configs[conf])
+		config_path = os.path.expanduser(config_path)
+		configs = json.load(open(config_path))
+		for conf in configs:
+			if isinstance(configs[conf], str) and configs[conf].startswith("~/"):
+				configs[conf] = os.path.expanduser(configs[conf])
 
-	def __getitem__(self, key):
-		if key in self.configs:
-			return self.configs[key]
+		super().__setattr__("configs", configs)
+
+	def __getattribute__(self, key: str) -> None:
+		configs = super(ConfigManager, self).__getattribute__("configs")
+		if key in configs:
+			return configs[key]
 		else:
-			raise KeyError("No such config")
+			return None
+	
+	def __setattr__(self, key: str, value: Any) -> None:
+		configs = super(ConfigManager, self).__getattribute__("configs")
+		if key in configs:
+			configs[key] = value
+		else:
+			raise KeyError

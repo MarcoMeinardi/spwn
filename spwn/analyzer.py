@@ -19,12 +19,12 @@ class Analyzer:
 		self.print_libc_version()
 		self.print_dangerous_functions()
 		self.run_yara()
-		self.run_custom_commands(self.configs["preanalysis_commands"])
+		self.run_custom_commands(self.configs.preanalysis_commands)
 		print()
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()
-		self.run_custom_commands(self.configs["postanalysis_commands"])
+		self.run_custom_commands(self.configs.postanalysis_commands)
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
@@ -60,7 +60,7 @@ class Analyzer:
 			print(" ".join(dangerous_functions))
 
 	def run_yara(self) -> None:
-		rules = yara.compile(self.configs["yara_rules"])
+		rules = yara.compile(self.configs.yara_rules)
 		with open(self.files.binary.name, "rb") as f:
 			matches = rules.match(data=f.read())
 

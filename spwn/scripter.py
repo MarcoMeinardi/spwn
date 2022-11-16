@@ -6,10 +6,11 @@ import spwn.utils as utils
 class Scripter:
 	def __init__(self, configs: ConfigManager, files: FileManager | None=None, create_interactions: bool=False):
 		self.interactions = ""
+		self.configs = configs
 		if files:
 			self.files = files
 			self.create_interactions = create_interactions
-			with open(configs["template_file"]) as f:
+			with open(self.configs.template_file) as f:
 				self.template = f.read()
 		
 
@@ -21,7 +22,7 @@ class Scripter:
 			self.script = self.template.format(
 				binary=self.files.binary.name,
 				libc=self.files.libc.name,
-				debug_dir=self.files.configs["debug_dir"],
+				debug_dir=self.configs.debug_dir,
 				interactions=self.interactions
 			)
 
@@ -37,7 +38,7 @@ class Scripter:
 
 
 	def save_script(self) -> None:
-		with open(self.files.configs["script_file"], "w") as f:
+		with open(self.configs.script_file, "w") as f:
 			f.write(self.script)
 
 	def dump_interactions(self):
