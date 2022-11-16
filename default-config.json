@@ -9,5 +9,7 @@
 	],
 	"postanalysis_commands": [
 		["false {debug_binary} &> /dev/null", false]
-	]
+	],
+	"idafree_command": "",
+	"decompiler_command": ""
 }

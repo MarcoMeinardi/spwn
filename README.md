@@ -93,6 +93,16 @@ running it, this might be used, for example, to launch the decompiler.
 If you want to run the program without a timeout (discouraged) you
 can set it to `null`.
 
+For the decompilers commands, the syntax is the same of the pre and
+post analysis commands. I created an apposite config, rather than
+putting it in a pre analysis command, because I use IDA freeware
+and it can decompile only x86-64 binaries, so I have to use another
+decompiler for other architectures. If you want to use always the
+same decompiler, leave `idafree_command` empty and if you don't want
+to launch any decompiler, just leave both configs empty. If you wish
+to modify the conditions to select the decompiler, you will have to
+modify the `open_decompiler` function in `analyzer.py`.
+
 
 If you have any question or feature request, feel free to ask
 [here](https://github.com/MarcoMeinardi/spwn/issues).

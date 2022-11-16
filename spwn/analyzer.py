@@ -19,6 +19,7 @@ class Analyzer:
 		self.print_libc_version()
 		self.print_dangerous_functions()
 		self.run_yara()
+		self.open_decompiler()
 		self.run_custom_commands(self.configs.preanalysis_commands)
 		print()
 
@@ -68,6 +69,13 @@ class Analyzer:
 			print("[!] yara found something")
 			for match in matches:
 				print(match)
+
+	def open_decompiler(self) -> None:
+		if self.configs.idafree_command and self.files.binary.pwnfile.arch == "amd64" and self.files.binary.pwnfile.bits == 64:
+			subprocess.Popen(self.configs.idafree_command.format(binary=self.files.binary.name), shell=True)
+		elif self.configs.decompiler_command:
+			subprocess.Popen(self.configs.decompiler_command.format(binary=self.files.binary.name), shell=True)
+
 
 	def check_and_print_seccomp(self) -> None:
 		for function in self.files.binary.pwnfile.sym:

@@ -17,7 +17,7 @@ class ConfigManager:
 		if key in configs:
 			return configs[key]
 		else:
-			return None
+			raise KeyError
 	
 	def __setattr__(self, key: str, value: Any) -> None:
 		configs = super(ConfigManager, self).__getattribute__("configs")
