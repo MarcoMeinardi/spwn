@@ -8,10 +8,11 @@ import spwn.utils as utils
 from spwn.binary import Binary
 from spwn.libc import Libc
 from spwn.loader import Loader
+from spwn.configmanager import ConfigManager
 
 
 class FileManager:
-	def __init__(self, configs: dict):
+	def __init__(self, configs: ConfigManager):
 		self.configs = configs
 		self.binary = None
 		self.libc = None

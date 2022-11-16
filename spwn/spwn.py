@@ -6,7 +6,7 @@ import sys
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
-from spwn.config_manager import ConfigManager
+from spwn.configmanager import ConfigManager
 
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
 configs = ConfigManager(CONFIG_PATH)
@@ -112,8 +112,7 @@ class Spwn:
 def main():
 	parser = argparse.ArgumentParser(
 		prog = "spwn",
-		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn",
-		epilog = "If you find any issues please report them here: https://github.com/MarcoMeinardi/spwn/issues",
+		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn"
 	)
 
 	parser.add_argument(

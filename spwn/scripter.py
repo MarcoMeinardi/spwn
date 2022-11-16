@@ -1,9 +1,10 @@
 from spwn.filemanager import FileManager
+from spwn.configmanager import ConfigManager
 import spwn.utils as utils
 
 
 class Scripter:
-	def __init__(self, configs: dict, files: FileManager | None=None, create_interactions: bool=False):
+	def __init__(self, configs: ConfigManager, files: FileManager | None=None, create_interactions: bool=False):
 		self.interactions = ""
 		if files:
 			self.files = files

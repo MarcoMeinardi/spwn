@@ -1,15 +1,15 @@
 import subprocess
-import os, signal
 import re
 import yara
 
 from spwn.filemanager import FileManager
+from spwn.configmanager import ConfigManager
 
 dangerous_functions_check = ["system", "execve", "gets", "ptrace", "memfrob"]
 # Long term TODO: analyze the code to understand if printf and scanf are properly used (constant first arg)
 
 class Analyzer:
-	def __init__(self, configs: dict, files: FileManager):
+	def __init__(self, configs: ConfigManager, files: FileManager):
 		self.configs = configs
 		self.files = files
 
@@ -89,7 +89,7 @@ class Analyzer:
 			if timeout:
 				print(f"[*] {command}")
 				try:
-					# Use exec command, otherwise, because of `shell=True`, the process wouldn't be killed on timeout
+					# Use `exec command``, otherwise, because of `shell=True`, the process wouldn't be killed on timeout
 					p = subprocess.run(f"exec {command}", shell=True, timeout=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="latin-1")
 					print(p.stdout)
 				except subprocess.TimeoutExpired:
