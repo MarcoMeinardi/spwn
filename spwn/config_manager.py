@@ -17,7 +17,7 @@ class ConfigManager:
 		elif key in self.default_configs:
 			value = self.default_configs[key]
 		else:
-			value = None
+			raise KeyError(key)
 
 		if value and "~" in value:
 			value = os.path.expanduser(value)
@@ -26,15 +26,4 @@ class ConfigManager:
 
 	def __setitem__(self, key, value):
 		self.configs[key] = value
-		json.dump(self.configs, open(self.config_path, "w"), indent='\t')
-
-	def keys(self):
-		return self.configs.keys()
-
-	def reset(self, key):
-		if key in self.default_configs:
-			self.configs[key] = self.default_configs[key]
-		else:
-			del self.configs[key]
-
 		json.dump(self.configs, open(self.config_path, "w"), indent='\t')
