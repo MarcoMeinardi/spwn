@@ -1,17 +1,15 @@
-from code import InteractiveConsole
+import argparse
 import os
 import shutil
 import sys
-import json
 
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
+from spwn.config_manager import ConfigManager
 
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
-configs = json.load(open(CONFIG_PATH))
-configs["template_file"] = os.path.expanduser(configs["template_file"])
-configs["yara_rules"] = os.path.expanduser(configs["yara_rules"])
+configs = ConfigManager(CONFIG_PATH)
 
 class Spwn:
 	def __init__(self, create_interactions: bool=False, interactions_only: bool=False):
@@ -110,33 +108,41 @@ class Spwn:
 
 		for library in self.files.other_libraries:
 			shutil.copy(library, os.path.join(configs["debug_dir"], library))
-		
-help_msg = r"""
-spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn
-
-Usage:
-    spwn [inter|i|-i] [help|h|-h] [ionly|io|-io]
-	- inter:
-	    Interactively create interaction functions
-	- help:
-	    Print this message
-	- ionly:
-		Create the interaction functions, without doing any analysis
-
-Bug report: https://github.com/MarcoMeinardi/spwn/issues
-"""[1:-1]
-
-def print_help_msg():
-	print(help_msg)
 	
 def main():
-	if "h" in sys.argv or "-h" in sys.argv or any("help" in arg for arg in sys.argv):
-		print_help_msg()
-	elif "io" in sys.argv or "-io" in sys.argv or any("ionly" in arg for arg in sys.argv):
+	parser = argparse.ArgumentParser(
+		prog = "spwn",
+		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn",
+		epilog = "If you find any issues please report them here: https://github.com/MarcoMeinardi/spwn/issues",
+	)
+
+	parser.add_argument(
+		"-i", "--inter",
+		action = "store_true",
+		help = "Interactively create interaction functions",
+	)
+
+	parser.add_argument(
+		"-io", "--ionly",
+		action = "store_true",
+		help = "Create the interaction functions, without doing any analysis",
+	)
+
+	parser.add_argument(
+		"mode", 
+		choices = ["inter", "i", "ionly", "io"],
+		nargs = "?",
+		help = "Use these if you don't want to type '-'"
+	)
+
+	args = parser.parse_args(sys.argv[1:])
+
+	args.ionly |= args.mode in ["ionly", "io"]
+	args.inter |= args.mode in ["interactive", "inter", "i"]
+
+	if args.ionly:
 		Spwn(interactions_only=True)
-	elif "i" in sys.argv or "-i" in sys.argv or any("inter" in arg for arg in sys.argv):
-		Spwn(create_interactions=True)
 	else:
-		Spwn()
+		Spwn(create_interactions=args.inter)
 
 	
