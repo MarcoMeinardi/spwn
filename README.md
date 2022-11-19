@@ -21,6 +21,8 @@ some more features).
    * potentially vulnerable functions
    * cryptographic constants
    * seccomp rules
+ * Launch decompiler
+ * Launch custom user-provided commands
 
 ## Usage
 ```
