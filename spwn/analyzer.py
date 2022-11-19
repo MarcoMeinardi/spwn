@@ -1,5 +1,6 @@
 import subprocess
 import re
+import os
 import yara
 
 from spwn.filemanager import FileManager
@@ -72,9 +73,9 @@ class Analyzer:
 
 	def open_decompiler(self) -> None:
 		if self.configs.idafree_command and self.files.binary.pwnfile.arch == "amd64" and self.files.binary.pwnfile.bits == 64:
-			subprocess.Popen(self.configs.idafree_command.format(binary=self.files.binary.name), shell=True)
+			subprocess.Popen(self.configs.idafree_command.format(binary=self.files.binary.name), shell=True, start_new_session=True)
 		elif self.configs.decompiler_command:
-			subprocess.Popen(self.configs.decompiler_command.format(binary=self.files.binary.name), shell=True)
+			subprocess.Popen(self.configs.decompiler_command.format(binary=self.files.binary.name), shell=True, start_new_session=True)
 
 
 	def check_and_print_seccomp(self) -> None:
@@ -103,4 +104,4 @@ class Analyzer:
 				except subprocess.TimeoutExpired:
 					print("[!] Timeout")
 			else:
-				subprocess.Popen(command, shell=True)
+				subprocess.Popen(command, shell=True, start_new_session=True)
