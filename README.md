@@ -88,8 +88,8 @@ For the pre and post analysis commands, they are in the form
 `[command, timeout]`, the default commands, are just examples that
 do nothing. The `command` should contain the `"{binary}"` or
 `"{debug_binary}"` string in order to be formatted with the correct
-executable path. You should use `debug_binary` only if the binary
-will be run. If you set `timeout` to `false`, the program gets
+executable path. You should use `debug_binary` only if your command
+will run the binary. If you set `timeout` to `false`, the program gets
 run with `subprocess.Popen`, thus the analysis will go on while
 running it, this might be used, for example, to launch the decompiler.
 If you want to run the program without a timeout (discouraged) you

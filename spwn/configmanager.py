@@ -3,13 +3,14 @@ import os
 from typing import Any
 
 class ConfigManager:
-	def __init__(self, config_path) -> None:
+	def __init__(self, config_path: str) -> None:
 		config_path = os.path.expanduser(config_path)
 		configs = json.load(open(config_path))
 		for conf in configs:
 			if isinstance(configs[conf], str) and configs[conf].startswith("~/"):
 				configs[conf] = os.path.expanduser(configs[conf])
 
+		configs["config_path"] = config_path
 		super().__setattr__("configs", configs)
 
 	def __getattribute__(self, key: str) -> None:

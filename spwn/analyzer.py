@@ -21,12 +21,10 @@ class Analyzer:
 		self.print_dangerous_functions()
 		self.run_yara()
 		self.open_decompiler()
-		self.run_custom_commands(self.configs.preanalysis_commands)
 		print()
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()
-		self.run_custom_commands(self.configs.postanalysis_commands)
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
@@ -91,17 +89,3 @@ class Analyzer:
 			print(subprocess.check_output(["seccomp-tools", "dump", f"./{self.files.binary.debug_name}"], timeout=1, stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT, encoding="latin1"))
 		except subprocess.TimeoutExpired as e:
 			print(f"[!] {e}")
-
-	def run_custom_commands(self, commands: list[str]) -> None:
-		for command, timeout in commands:
-			command = command.format(binary=self.files.binary.name, debug_binary=self.files.binary.debug_name)
-			if timeout:
-				print(f"[*] {command}")
-				try:
-					# Use `exec command``, otherwise, because of `shell=True`, the process wouldn't be killed on timeout
-					p = subprocess.run(f"exec {command}", shell=True, timeout=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="latin-1")
-					print(p.stdout)
-				except subprocess.TimeoutExpired:
-					print("[!] Timeout")
-			else:
-				subprocess.Popen(command, shell=True, start_new_session=True)

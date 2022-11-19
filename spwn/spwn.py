@@ -7,6 +7,7 @@ from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
 from spwn.configmanager import ConfigManager
+from spwn.customanalyzer import CustomAnalyzer
 
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
 configs = ConfigManager(CONFIG_PATH)
@@ -33,7 +34,9 @@ class Spwn:
 	def run(self) -> None:
 		if self.files:
 			analyzer = Analyzer(configs, self.files)
+			custom_analyzer = CustomAnalyzer(configs, self.files)
 			analyzer.pre_analysis()
+			custom_analyzer.pre_analysis()
 			if self.files.libc:
 				self.create_debug_dir()
 				self.populate_debug_dir()
@@ -48,6 +51,7 @@ class Spwn:
 
 			self.files.binary.set_executable()
 			analyzer.post_analysis()
+			custom_analyzer.post_analysis()
 
 			self.scripter = Scripter(configs, self.files, create_interactions=self.create_interactions)
 			self.scripter.create_script()
