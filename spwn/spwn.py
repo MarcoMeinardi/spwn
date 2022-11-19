@@ -12,10 +12,12 @@ from spwn.customanalyzer import CustomAnalyzer
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
 configs = ConfigManager(CONFIG_PATH)
 
+
 class Spwn:
-	def __init__(self, create_interactions: bool=False, interactions_only: bool=False):
+	def __init__(self, create_interactions: bool=False, interactions_only: bool=False, no_decompiler: bool=True):
 		if not interactions_only:
 			self.create_interactions = create_interactions
+			self.no_decompiler = no_decompiler
 			self.files = FileManager(configs)
 			self.files.auto_recognize()
 
@@ -35,7 +37,7 @@ class Spwn:
 		if self.files:
 			analyzer = Analyzer(configs, self.files)
 			custom_analyzer = CustomAnalyzer(configs, self.files)
-			analyzer.pre_analysis()
+			analyzer.pre_analysis(open_decompiler=not self.no_decompiler)
 			custom_analyzer.pre_analysis()
 			print()
 
@@ -117,37 +119,47 @@ class Spwn:
 	
 def main():
 	parser = argparse.ArgumentParser(
-		prog = "spwn",
-		description = "spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn"
+		prog="spwn",
+		description="spwn is a tool to quickly start a pwn challenge, for more informations check https://github.com/MarcoMeinardi/spwn"
 	)
 
 	parser.add_argument(
 		"-i", "--inter",
-		action = "store_true",
-		help = "Interactively create interaction functions",
+		action="store_true",
+		default=False,
+		help="Interactively create interaction functions"
 	)
 
 	parser.add_argument(
 		"-io", "--ionly",
-		action = "store_true",
-		help = "Create the interaction functions, without doing any analysis",
+		action="store_true",
+		default=False,
+		help="Create the interaction functions, without doing any analysis"
+	)
+
+	parser.add_argument(
+		"-nd", "--nodecomp",
+		action="store_true",
+		default=False,
+		help="Don't open the decompiler"
 	)
 
 	parser.add_argument(
 		"mode", 
-		choices = ["inter", "i", "ionly", "io"],
-		nargs = "?",
-		help = "Use these if you don't want to type '-'"
+		choices=["inter", "i", "ionly", "io", "nd", "nodecomp", []],
+		nargs="*",
+		help="Use these if you don't want to type '-'"
 	)
 
 	args = parser.parse_args(sys.argv[1:])
 
-	args.ionly |= args.mode in ["ionly", "io"]
-	args.inter |= args.mode in ["interactive", "inter", "i"]
+	args.ionly    |= any(arg in ["ionly", "io"] for arg in args.mode)
+	args.inter    |= any(arg in ["interactive", "inter", "i"] for arg in args.mode)
+	args.nodecomp |= any(arg in ["nodecomp", "nd"] for arg in args.mode)
 
 	if args.ionly:
 		Spwn(interactions_only=True)
 	else:
-		Spwn(create_interactions=args.inter)
+		Spwn(create_interactions=args.inter, no_decompiler=args.nodecomp)
 
 	

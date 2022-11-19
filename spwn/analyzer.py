@@ -1,6 +1,5 @@
 import subprocess
 import re
-import os
 import yara
 
 from spwn.filemanager import FileManager
@@ -9,18 +8,20 @@ from spwn.configmanager import ConfigManager
 dangerous_functions_check = ["system", "execve", "gets", "ptrace", "memfrob"]
 # Long term TODO: analyze the code to understand if printf and scanf are properly used (constant first arg)
 
+
 class Analyzer:
 	def __init__(self, configs: ConfigManager, files: FileManager):
 		self.configs = configs
 		self.files = files
 
-	def pre_analysis(self) -> None:
+	def pre_analysis(self, open_decompiler: bool) -> None:
 		self.run_file()
 		self.run_checksec()
 		self.print_libc_version()
 		self.print_dangerous_functions()
 		self.run_yara()
-		self.open_decompiler()
+		if open_decompiler:
+			self.open_decompiler()
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()

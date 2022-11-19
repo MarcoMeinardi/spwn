@@ -2,6 +2,7 @@ import json
 import os
 from typing import Any
 
+
 class ConfigManager:
 	def __init__(self, config_path: str) -> None:
 		config_path = os.path.expanduser(config_path)

@@ -5,6 +5,7 @@ import os
 from spwn.configmanager import ConfigManager
 from spwn.filemanager import FileManager
 
+
 class CustomAnalyzer:
     def __init__(self, configs: ConfigManager, files: FileManager):
         self.configs = configs
