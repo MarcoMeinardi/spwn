@@ -23,6 +23,7 @@ some more features).
    * seccomp rules
  * Launch decompiler
  * Launch custom user-provided commands
+ * Launch custom user-provided python scripts
 
 ## Usage
 ```
@@ -78,7 +79,7 @@ you can modify to your liking.
 
 ### Template
 The template path can be directly edited in the config file, however,
-if you want to change the location of the config file, you have to
+if you want to change the location of the config file, you will have to
 edit the source code. The variable is `CONFIG_PATH` in `spwn.py`.
 It's location should be
 `~/.local/lib/python3.{python-version}/site-packages/spwn/spwn.py`.
@@ -115,7 +116,7 @@ class FileManager:
     self.libc    # Can be None
     self.loader  # Can be None
     # libc and loader have their own type that are a subclass of `Binary`
-    self.other_binaries  # (all the other files) list of relative paths
+    self.other_binaries  # list of relative paths
 
 class Binary:
     self.name  # relative path to the original binary
