@@ -94,12 +94,12 @@ executable path. You should use `debug_binary` only if your command
 will run the binary. If you set `timeout` to `false`, the program gets
 run with `subprocess.Popen`, thus the analysis will go on while
 running it and the process will go on after `spwn` will have
-terminated. This might be used, for example, to launch the decompiler.
-If you want to run the program without a timeout (discouraged) you
-can set it to `null`. A couple of examples are:
+terminated. This might be used, for example, to run the ROP-gadgets
+search in the background. If you want to run the program without a
+timeout (discouraged) you can set it to `null`. A couple of examples are:
 ```
-["command {binary}", 1]
-["command {debug_binary} < /dev/null", false]
+["one_gadget {binary}", 1]
+["ropr -njs {debug_binary} > gadgets", false]
 ```
 
 ### Custom script
