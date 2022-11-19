@@ -4,7 +4,7 @@ import os
 import subprocess
 
 def ask_list_delete(msg: str, options: list[str], can_skip: bool) -> str | None:
-	if len(options) == 1:
+	if len(options) == 1 and not can_skip:
 		ans = options[0]
 		del options[0]
 		return ans
