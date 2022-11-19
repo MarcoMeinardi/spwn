@@ -21,7 +21,6 @@ class Analyzer:
 		self.print_dangerous_functions()
 		self.run_yara()
 		self.open_decompiler()
-		print()
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()

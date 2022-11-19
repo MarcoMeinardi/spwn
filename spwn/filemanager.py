@@ -17,14 +17,15 @@ class FileManager:
 		self.binary = None
 		self.libc = None
 		self.loader = None
-		self.other_libraries = []
-
+		self.other_binaries = []
 
 	def auto_recognize(self) -> None:
 		binaries = []
 		libcs = []
 		loaders = []
+		other_libraries = []
 		files = list(filter(lambda x: pwn.platform.architecture(x)[1] == "ELF", os.listdir()))
+		self.other_binaries = files
 		if not files:
 			raise Exception("No ELFs found")
 
@@ -32,7 +33,7 @@ class FileManager:
 			if file.startswith("libc"):
 				libcs.append(file)
 			elif file.startswith("lib"):
-				self.other_libraries.append(file)
+				other_libraries.append(file)
 			elif file.startswith("ld"):
 				loaders.append(file)
 			else:
@@ -44,7 +45,7 @@ class FileManager:
 		elif len(binaries) > 1:
 			self.binary = utils.ask_list_delete("Select binary", binaries, can_skip=False)
 			self.binary = Binary(self.binary)
-			self.other_libraries.extend(binaries)
+			other_libraries.extend(binaries)
 		else:
 			self.ask_all(files)
 			return
@@ -54,18 +55,16 @@ class FileManager:
 		if len(libcs) == 1:
 			self.libc = Libc(libcs[0])
 		else:
-			libcs.extend(self.other_libraries)
+			libcs.extend(other_libraries)
 			if not libcs: 
-				self.other_libraries = []
 				return
 
 			self.libc = utils.ask_list_delete("Select libc", libcs, can_skip=True)
 			if self.libc is None:
-				self.other_libraries = []
 				return
 			self.libc = Libc(self.libc)
 
-			self.other_libraries = libcs
+			other_libraries = libcs
 
 		# Loader
 		del files[files.index(self.libc.name)]
@@ -77,15 +76,13 @@ class FileManager:
 			self.loader = utils.ask_list_delete("Select loader", loaders, can_skip=True)
 			if self.loader:
 				self.loader = Loader(self.loader)
-			self.other_libraries.extend(loaders)
-
+		del files[files.index(self.loader.name)]
 
 	def ask_all(self, files: list[str]) -> None:
-		if not files: raise Exception("No file found")
+		if not files: raise Exception("No executables found")
 
 		self.libc = None
 		self.loader = None
-		self.other_libraries = []
 
 		self.binary = utils.ask_list_delete("Select binary", files, can_skip=False)
 		self.binary = Binary(self.binary)
@@ -98,7 +95,6 @@ class FileManager:
 					self.loader = Loader(self.loader)
 			else:
 				self.loader = None
-			self.other_libraries = files
 		else:
 			self.libc = None
 			self.loader = None

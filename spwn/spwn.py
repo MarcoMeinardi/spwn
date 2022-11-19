@@ -24,7 +24,7 @@ class Spwn:
 			else: print("[!] No libc")
 			if self.files.loader: print("[*] Loader:", self.files.loader.name)
 			else: print("[!] No loader")
-			if self.files.other_libraries: print("[*] Other: ", self.files.other_libraries)
+			if self.files.other_binaries: print("[*] Other: ", self.files.other_binaries)
 			print()
 		else:
 			self.files = None
@@ -37,6 +37,8 @@ class Spwn:
 			custom_analyzer = CustomAnalyzer(configs, self.files)
 			analyzer.pre_analysis()
 			custom_analyzer.pre_analysis()
+			print()
+
 			if self.files.libc:
 				self.create_debug_dir()
 				self.populate_debug_dir()
@@ -110,8 +112,8 @@ class Spwn:
 			shutil.copy(self.files.loader.name, os.path.join(configs.debug_dir, "ld-linux.so.2"))
 			self.files.loader.debug_name = os.path.join(configs.debug_dir, "ld-linux.so.2")
 
-		for library in self.files.other_libraries:
-			shutil.copy(library, os.path.join(configs.debug_dir, library))
+		for binary in self.files.other_binaries:
+			shutil.copy(binary, os.path.join(configs.debug_dir, binary))
 	
 def main():
 	parser = argparse.ArgumentParser(
