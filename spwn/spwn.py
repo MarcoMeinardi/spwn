@@ -14,7 +14,7 @@ configs = ConfigManager(CONFIG_PATH)
 
 
 class Spwn:
-	def __init__(self, create_interactions: bool=False, interactions_only: bool=False, no_decompiler: bool=True):
+	def __init__(self, create_interactions: bool = False, interactions_only: bool = False, no_decompiler: bool = True):
 		if not interactions_only:
 			self.create_interactions = create_interactions
 			self.no_decompiler = no_decompiler
@@ -116,7 +116,8 @@ class Spwn:
 
 		for binary in self.files.other_binaries:
 			shutil.copy(binary, os.path.join(configs.debug_dir, binary))
-	
+
+
 def main():
 	parser = argparse.ArgumentParser(
 		prog="spwn",
@@ -145,7 +146,7 @@ def main():
 	)
 
 	parser.add_argument(
-		"mode", 
+		"mode",
 		choices=["inter", "i", "ionly", "io", "nd", "nodecomp", []],
 		nargs="*",
 		help="Use these if you don't want to type '-'"
@@ -161,5 +162,3 @@ def main():
 		Spwn(interactions_only=True)
 	else:
 		Spwn(create_interactions=args.inter, no_decompiler=args.nodecomp)
-
-	

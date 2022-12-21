@@ -43,7 +43,7 @@ class Analyzer:
 			if debug_info:
 				print(debug_info.group())
 			print(stripped.group())
-	
+
 	def run_checksec(self) -> None:
 		print(f"[*] checksec {self.files.binary.name}")
 		print(self.files.binary.pwnfile.checksec(banner=False))
@@ -54,7 +54,7 @@ class Analyzer:
 
 	def print_dangerous_functions(self) -> None:
 		dangerous_functions = list(filter(lambda x: x in dangerous_functions_check, self.files.binary.pwnfile.sym))
-		
+
 		if dangerous_functions:
 			print("[!] There are some dangerous functions:")
 			print(" ".join(dangerous_functions))
@@ -74,7 +74,6 @@ class Analyzer:
 			subprocess.Popen(self.configs.idafree_command.format(binary=self.files.binary.name), shell=True, start_new_session=True)
 		elif self.configs.decompiler_command:
 			subprocess.Popen(self.configs.decompiler_command.format(binary=self.files.binary.name), shell=True, start_new_session=True)
-
 
 	def check_and_print_seccomp(self) -> None:
 		for function in self.files.binary.pwnfile.sym:

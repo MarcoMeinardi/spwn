@@ -4,6 +4,7 @@ import os
 import requests
 import json
 
+
 # Copy configurations in ~/.config/spwn
 class CreateConfigs(install):
 	def run(self, *args, **kwargs):
@@ -24,7 +25,7 @@ class CreateConfigs(install):
 		default_configs_file = os.path.expanduser("~/.config/spwn/.default_config.json")
 		template_file = os.path.expanduser("~/.config/spwn/template.py")
 		default_configs_path = os.path.join(os.path.dirname(__file__), "default-config.json")
-		
+
 		with open(default_configs_path) as f:
 			default_configs = json.load(f)
 
@@ -40,14 +41,14 @@ class CreateConfigs(install):
 			new_configs = default_configs | user_configs
 			with open(configs_file, "w") as f:
 				json.dump(new_configs, f, indent='\t')
-			
+
 		if not os.path.exists(template_file):
 			default_template_path = os.path.join(os.path.dirname(__file__), "default-template.py")
 			with open(default_template_path) as f:
 				template = f.read()
 			with open(template_file, "w") as f:
 				f.write(template)
-			
+
 	def download_yara_rules(self):
 		rules_path = os.path.expanduser("~/.config/spwn/findcrypt3.rules")
 		if not os.path.exists(rules_path):
@@ -56,7 +57,7 @@ class CreateConfigs(install):
 
 			with open(rules_path, "w") as f:
 				f.write(r.text)
-		
+
 
 with open("README.md") as f:
 	long_description = f.read()
@@ -78,7 +79,6 @@ setuptools.setup(
 	cmdclass={
 		"install": CreateConfigs
 	},
-	
+
 	url="https://github.com/MarcoMeinardi/spwn"
 )
-

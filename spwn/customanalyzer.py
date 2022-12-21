@@ -10,7 +10,7 @@ class CustomAnalyzer:
     def __init__(self, configs: ConfigManager, files: FileManager):
         self.configs = configs
         self.files = files
-    
+
     def pre_analysis(self) -> None:
         for command, timeout in self.configs.preanalysis_commands:
             self.run_command(command, timeout)
@@ -53,4 +53,3 @@ class CustomAnalyzer:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         module.main(self.files)
-        

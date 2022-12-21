@@ -4,7 +4,7 @@ import spwn.utils as utils
 
 
 class Scripter:
-	def __init__(self, configs: ConfigManager, files: FileManager | None=None, create_interactions: bool=False):
+	def __init__(self, configs: ConfigManager, files: FileManager | None = None, create_interactions: bool = False):
 		self.interactions = ""
 		self.configs = configs
 		if files:
@@ -12,7 +12,6 @@ class Scripter:
 			self.create_interactions = create_interactions
 			with open(self.configs.template_file) as f:
 				self.template = f.read()
-		
 
 	def create_script(self) -> None:
 		if self.create_interactions:
@@ -29,13 +28,12 @@ class Scripter:
 		else:
 			# Remove libc line from template
 			self.template = "\n".join(filter(lambda x: "{libc}" not in x, self.template.splitlines()))
-			
+
 			self.script = self.template.format(
 				binary=self.files.binary.name,
 				debug_dir=".",
 				interactions=self.interactions
 			)
-
 
 	def save_script(self) -> None:
 		with open(self.configs.script_file, "w") as f:
@@ -91,7 +89,7 @@ class InteractionFunction:
 			self.variables.append(ByteVariable(variable_name, variable_interaction))
 		else:
 			assert False, "???"
-		
+
 		return True
 
 	def emit_function(self) -> str:
@@ -107,6 +105,7 @@ class AbstractVariable:
 	def __init__(self, name, interaction):
 		self.name = name
 		self.interaction = interaction
+
 
 class IntVariable(AbstractVariable):
 	def __init__(self, name, interaction):
@@ -128,7 +127,3 @@ class ByteVariable(AbstractVariable):
 			return f'r.sendlineafter(b"{self.interaction}", {self.name})'
 		else:
 			return f'r.sendline({self.name})'
-
-
-		
-	

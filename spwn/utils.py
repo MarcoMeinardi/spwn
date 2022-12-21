@@ -34,7 +34,8 @@ def ask_list_delete(msg: str, options: list[str], can_skip: bool) -> str | None:
 
 	return ans
 
-def ask_list(msg: str, options: list[str], can_skip:bool) -> str | None:
+
+def ask_list(msg: str, options: list[str], can_skip: bool) -> str | None:
 	if len(options) == 1:
 		ans = options[0]
 		return ans
@@ -60,6 +61,7 @@ def ask_list(msg: str, options: list[str], can_skip:bool) -> str | None:
 
 	return ans
 
+
 def ask_string(msg: str, can_skip: bool) -> str | None:
 	resp = input(f"{msg} > ")[:-1]
 	if resp: return resp
@@ -70,6 +72,7 @@ def ask_string(msg: str, can_skip: bool) -> str | None:
 		resp = input("> ")[:-1]
 		if resp:
 			return resp
+
 
 def download_package(package_url: str, tempdir: str) -> bool:
 	try:
@@ -85,7 +88,8 @@ def download_package(package_url: str, tempdir: str) -> bool:
 		f.write(r.content)
 
 	return True
-	
+
+
 def extract_deb(tempdir: str) -> bool:
 	try:
 		subprocess.check_call(["ar", "x", os.path.join(tempdir, "libc.deb"), "--output=" + tempdir])
@@ -93,6 +97,7 @@ def extract_deb(tempdir: str) -> bool:
 	except subprocess.CalledProcessError:
 		print("[!] Cannot extract .deb package")
 		return False
+
 
 def find_and_extract_data(tempdir: str) -> bool:
 	to_extract = None
@@ -112,6 +117,7 @@ def find_and_extract_data(tempdir: str) -> bool:
 		return False
 
 	return True
+
 
 def find_loader(tempdir: str) -> str | None:
 	for parent, dirs, files in os.walk(tempdir):

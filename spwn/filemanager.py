@@ -56,7 +56,7 @@ class FileManager:
 			self.libc = Libc(libcs[0])
 		else:
 			libcs.extend(other_libraries)
-			if not libcs: 
+			if not libcs:
 				return
 
 			self.libc = utils.ask_list_delete("Select libc", libcs, can_skip=True)
@@ -71,8 +71,8 @@ class FileManager:
 		if len(loaders) == 1:
 			self.loader = Loader(loaders[0])
 		else:
-			if not loaders: 
-				return 
+			if not loaders:
+				return
 			self.loader = utils.ask_list_delete("Select loader", loaders, can_skip=True)
 			if self.loader:
 				self.loader = Loader(self.loader)
@@ -105,7 +105,7 @@ class FileManager:
 			print("[!] Cannot get ubuntu packet name for loader")
 			return
 
-		package_name = f"libc6_{ubuntu_version}_{self.libc.pwnfile.get_machine_arch()}.deb"	
+		package_name = f"libc6_{ubuntu_version}_{self.libc.pwnfile.get_machine_arch()}.deb"
 		package_url  = f"https://launchpad.net/ubuntu/+archive/primary/+files/{package_name}"
 		tempdir = tempfile.mkdtemp()
 
@@ -127,7 +127,7 @@ class FileManager:
 		if loader_path is None:
 			shutil.rmtree(tempdir)
 			return
-		
+
 		new_loader_path = os.path.join(self.configs.debug_dir, "ld-linux.so.2")
 		shutil.copyfile(loader_path, new_loader_path)
 		self.loader = Loader(new_loader_path)
@@ -146,6 +146,3 @@ class FileManager:
 				subprocess.check_call(["patchelf", "--set-rpath", self.configs.debug_dir, self.binary.debug_name])
 			except subprocess.CalledProcessError:
 				print("[!] patchelf failed")
-
-
-	
