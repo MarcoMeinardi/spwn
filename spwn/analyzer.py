@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 import re
 import yara
 
@@ -83,8 +84,11 @@ class Analyzer:
 
 	def run_seccomptools(self) -> None:
 		print("[!] Possible seccomp found")
-		print(f"[*] seccomp-tools dump ./{self.files.binary.debug_name} < /dev/null")
-		try:
-			print(subprocess.check_output(["seccomp-tools", "dump", f"./{self.files.binary.debug_name}"], timeout=1, stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT, encoding="latin1"))
-		except subprocess.TimeoutExpired as e:
-			print(f"[!] {e}")
+		if not shutil.which("seccomp-tools"):
+			print("[ERROR] seccomp-tools not found, either it is not installed or is not in your $PATH")
+		else:
+			print(f"[*] seccomp-tools dump ./{self.files.binary.debug_name} < /dev/null")
+			try:
+				print(subprocess.check_output(["seccomp-tools", "dump", f"./{self.files.binary.debug_name}"], timeout=1, stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT, encoding="latin1"))
+			except subprocess.TimeoutExpired as e:
+				print(f"[!] {e}")

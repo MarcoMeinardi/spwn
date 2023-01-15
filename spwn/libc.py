@@ -1,5 +1,6 @@
 import pwn
 import re
+import shutil
 
 from spwn.binary import Binary
 
@@ -23,6 +24,10 @@ class Libc(Binary):
 
 	def maybe_unstrip(self) -> None:
 		if self.has_debug_info(): return
+
+		if not shutil.which("eu-unstrip"):
+			print("[ERROR] eu-unstrip not found, please install elfutils")
+			return
 
 		print("[+] Trying to unstrip libc")
 		pwn.context.log_level = "warning"

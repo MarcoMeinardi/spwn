@@ -137,8 +137,9 @@ and it can decompile only x86-64 binaries, so I have to use another
 decompiler for other architectures. If you want to use always the
 same decompiler, leave `idafree_command` empty and if you don't want
 to launch any decompiler, just leave both configs empty. If you wish
-to modify the conditions to select the decompiler, you will have to
-modify the `open_decompiler` function in `analyzer.py`.
+to modify the conditions to select the decompiler, you can either
+modify the `open_decompiler` function in `analyzer.py` or create
+a custom script.
 
 ---
 If you have any question or feature request, feel free to ask

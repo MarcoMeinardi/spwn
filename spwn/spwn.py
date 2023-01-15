@@ -8,9 +8,10 @@ from spwn.analyzer import Analyzer
 from spwn.scripter import Scripter
 from spwn.configmanager import ConfigManager
 from spwn.customanalyzer import CustomAnalyzer
+from spwn.configgenerator import ConfigGenerator
+
 
 CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
-configs = ConfigManager(CONFIG_PATH)
 
 
 class Spwn:
@@ -147,9 +148,16 @@ def main():
 
 	parser.add_argument(
 		"mode",
-		choices=["inter", "i", "ionly", "io", "nd", "nodecomp", []],
+		choices=["inter", "i", "ionly", "io", "nd", "nodecomp", "setup", []],
 		nargs="*",
 		help="Use these if you don't want to type '-'"
+	)
+
+	parser.add_argument(
+		"--setup",
+		action="store_true",
+		default=False,
+		help="Setup configs and quit"
 	)
 
 	args = parser.parse_args(sys.argv[1:])
@@ -158,7 +166,16 @@ def main():
 	args.inter    |= any(arg in ["interactive", "inter", "i"] for arg in args.mode)
 	args.nodecomp |= any(arg in ["nodecomp", "nd"] for arg in args.mode)
 
-	if args.ionly:
-		Spwn(interactions_only=True)
+	if args.setup or "setup" in args.mode:
+		ConfigGenerator().maybe_create_config()
+		print("[*] Setup completed")
 	else:
-		Spwn(create_interactions=args.inter, no_decompiler=args.nodecomp)
+		ConfigGenerator().maybe_create_config()
+
+		global configs
+		configs = ConfigManager(CONFIG_PATH)
+
+		if args.ionly:
+			Spwn(interactions_only=True)
+		else:
+			Spwn(create_interactions=args.inter, no_decompiler=args.nodecomp)
