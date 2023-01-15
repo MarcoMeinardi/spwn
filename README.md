@@ -27,13 +27,13 @@ some more features).
 
 ## Usage
 ```
-spwn [inter|i|-i] [help|h|-h] [ionly|io|-io]
-    - inter:
-        Interactively create interaction functions
-    - help:
-        Print this message
-    - ionly:
-        Create the interaction functions, without doing any analysis
+spwn [-h] [-i] [-io] [-nd] [{inter,i,ionly,io,nd,nodecomp,} ...]
+
+options:
+  -h, --help            show this help message and exit
+  -i, --inter           Interactively create interaction functions
+  -io, --ionly          Create the interaction functions, without doing any analysis
+  -nd, --nodecomp       Don't open the decompiler
 ```
 
 If the files have weird namings (such as the libc name not starting with
