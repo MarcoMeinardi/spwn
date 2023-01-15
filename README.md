@@ -28,12 +28,12 @@ some more features).
 ## Usage
 ```
 spwn [inter|i|-i] [help|h|-h] [ionly|io|-io]
-	- inter:
-	    Interactively create interaction functions
-	- help:
-	    Print this message
-	- ionly:
-		Create the interaction functions, without doing any analysis
+    - inter:
+        Interactively create interaction functions
+    - help:
+        Print this message
+    - ionly:
+        Create the interaction functions, without doing any analysis
 ```
 
 If the files have weird namings (such as the libc name not starting with
