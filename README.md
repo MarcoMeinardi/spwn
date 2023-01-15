@@ -53,7 +53,7 @@ sudo gem install seccomp-tools
 ```
 Main package:
 ```
-pip install git+https://github.com/MarcoMeinardi/spwn
+pip install spwn
 ```
 You might need to add `~/.local/bin/spwn` to your `$PATH`
 
