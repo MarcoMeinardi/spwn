@@ -6,6 +6,7 @@ import shutil
 
 default_configs = {
 	"debug_dir": "debug",
+	"suppress_warnings": False,
 	"script_file": "a.py",
 	"template_file": "~/.config/spwn/template.py",
 	"yara_rules": "~/.config/spwn/findcrypt3.rules",
@@ -25,13 +26,13 @@ exe  = ELF(binary_name, checksec=True)
 libc = ELF("{libc}", checksec=False)
 context.binary = exe
 
-ru  = lambda *x: r.recvuntil(*x)
-rl  = lambda *x: r.recvline(*x)
-rc  = lambda *x: r.recv(*x)
-sla = lambda *x: r.sendlineafter(*x)
-sa  = lambda *x: r.sendafter(*x)
-sl  = lambda *x: r.sendline(*x)
-sn  = lambda *x: r.send(*x)
+ru  = lambda *x, **y: r.recvuntil(*x, **y)
+rl  = lambda *x, **y: r.recvline(*x, **y)
+rc  = lambda *x, **y: r.recv(*x, **y)
+sla = lambda *x, **y: r.sendlineafter(*x, **y)
+sa  = lambda *x, **y: r.sendafter(*x, **y)
+sl  = lambda *x, **y: r.sendline(*x, **y)
+sn  = lambda *x, **y: r.send(*x, **y)
 
 if args.REMOTE:
 	r = connect("")
@@ -51,26 +52,8 @@ r.interactive()
 
 class ConfigGenerator:
 	def maybe_create_config(self):
-		self.check_dependencies()
 		self.create_config_files()
 		self.download_yara_rules()
-
-	def check_dependencies(self):
-		deps = ["patchelf", "file"]
-		semi_deps = { "eu-unstrip": "elfutils", "seccomp-tools": "seccomp-tools" }
-
-		err = False
-		for dep in deps:
-			if not shutil.which(dep):
-				print(f"[ERROR] Please install {dep}")
-				err = True
-
-		for dep in semi_deps:
-			if not shutil.which(dep):
-				print(f"[WARNING] Please install {semi_deps[dep]}")
-
-		if err:
-			exit(1)
 
 	def create_config_files(self):
 		config_dir = os.path.expanduser("~/.config")

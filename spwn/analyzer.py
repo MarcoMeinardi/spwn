@@ -6,8 +6,7 @@ import yara
 from spwn.filemanager import FileManager
 from spwn.configmanager import ConfigManager
 
-dangerous_functions_check = ["system", "execve", "gets", "ptrace", "memfrob"]
-# Long term TODO: analyze the code to understand if printf and scanf are properly used (constant first arg)
+dangerous_functions_check = ["system", "execve", "gets", "ptrace", "memfrob", "strfry"]
 
 
 class Analyzer:
@@ -16,6 +15,7 @@ class Analyzer:
 		self.files = files
 
 	def pre_analysis(self, open_decompiler: bool) -> None:
+		self.check_dependencies()
 		self.run_file()
 		self.run_checksec()
 		self.print_libc_version()
@@ -23,9 +23,32 @@ class Analyzer:
 		self.run_yara()
 		if open_decompiler:
 			self.open_decompiler()
+		self.run_cwe_checker()
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()
+
+	def check_dependencies(self):
+		deps = ["patchelf", "file"]
+		semi_deps = {
+			"eu-unstrip": "elfutils",
+			"seccomp-tools": "seccomp-tools",
+			"cwe_checker": "cwe_checker (https://github.com/fkie-cad/cwe_checker)"
+		}
+
+		err = False
+		for dep in deps:
+			if not shutil.which(dep):
+				print(f"[ERROR] Please install {dep}")
+				err = True
+
+		if not self.configs.suppress_warnings:
+			for dep in semi_deps:
+				if not shutil.which(dep):
+					print(f"[WARNING] Please install {semi_deps[dep]}")
+
+		if err:
+			exit(1)
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
@@ -85,10 +108,22 @@ class Analyzer:
 	def run_seccomptools(self) -> None:
 		print("[!] Possible seccomp found")
 		if not shutil.which("seccomp-tools"):
-			print("[ERROR] seccomp-tools not found, either it is not installed or is not in your $PATH")
+			if not self.configs.suppress_warnings:
+				print("[ERROR] seccomp-tools not found, either it is not installed or is not in your $PATH")
 		else:
 			print(f"[*] seccomp-tools dump ./{self.files.binary.debug_name} < /dev/null")
 			try:
 				print(subprocess.check_output(["seccomp-tools", "dump", f"./{self.files.binary.debug_name}"], timeout=1, stdin=subprocess.DEVNULL, stderr=subprocess.STDOUT, encoding="latin1"))
 			except subprocess.TimeoutExpired as e:
 				print(f"[!] {e}")
+
+	def run_cwe_checker(self) -> None:
+		if not shutil.which("cwe_checker"):
+			if not self.configs.suppress_warnings:
+				print("[ERROR] cwe_checker not found, either it is not installed or is not in your $PATH")
+		else:
+			print(f"[*] cwe_checker {self.files.binary.name} (press Ctrl+C to stop)")
+			try:
+				print(subprocess.check_output(["cwe_checker", self.files.binary.name], encoding="latin1"))
+			except KeyboardInterrupt:
+				pass
