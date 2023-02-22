@@ -22,6 +22,7 @@ some more features).
    * cryptographic constants
    * seccomp rules
  * Launch decompiler
+ * Run [cwe_checker](https://github.com/fkie-cad/cwe_checker)
  * Launch custom user-provided commands
  * Launch custom user-provided python scripts
 
@@ -37,7 +38,7 @@ options:
   --setup               Setup configs and quit
 ```
 
-If the files have weird namings (such as the libc name not starting with
+If the files have weird names (such as the libc name not starting with
 "libc"), the autodetection will fail and fall in the manual selection,
 the best fix for this is to rename the files.
 
@@ -52,11 +53,14 @@ sudo apt update
 sudo apt install patchelf elfutils ruby-dev
 sudo gem install seccomp-tools
 ```
+To install [cwe_checker](https://github.com/fkie-cad/cwe_checker)
+follow the instructions in their repository.
+
 Main package:
 ```
 pip install spwn
 ```
-You might need to add `~/.local/bin/spwn` to your `$PATH`
+You might need to add `~/.local/bin/` to your `$PATH`
 
 ## Customization
 This tool is written because I wanted to customize `pwninit` as much
@@ -70,7 +74,7 @@ or directly modify the files in:
 
 Note that the default configurations and templates, gets written
 only if they are not already present (or updated if some fields
-is missing), so, if you want to customize those, you have to
+are missing), so, if you want to customize those, you have to
 modify the files as specified in the configurations section.
 
 ## Configurations
@@ -89,14 +93,17 @@ Its location should be
 Note that if you reinstall or update `spwn`, this variable will be
 overwritten.
 
+### Suppress warnings
+Don't show warning messages for non installed non-vital dependencies.
+
 ### Custom commands
 The pre and post analysis commands, are in the form `[command, timeout]`.
 `command` is a list of strings and should contain the `"{binary}"` or
 `"{debug_binary}"` string in order to be formatted with the correct
-executable path. You should use `debug_binary` only if your command
-will run the binary. If you set `timeout` to `false`, the program gets
-run with `subprocess.Popen`, thus the analysis will go on while
-running it and the process will go on after `spwn` will have
+executable path. You should use `debug_binary` only in the post analysis
+and if your command will run the binary. If you set `timeout` to `false`,
+the program gets run with `subprocess.Popen`, thus the analysis will go
+on while running it and the process will go on after `spwn` will have
 terminated. This might be used, for example, to run the ROP-gadgets
 search in the background. If you want to run the program without a
 timeout (discouraged) you can set it to `null`. A couple of examples are:
@@ -137,12 +144,15 @@ For the decompilers commands, the syntax is the same of the pre and
 post analysis commands. I created an apposite config, rather than
 putting it in a pre analysis command, because I use IDA freeware
 and it can decompile only x86-64 binaries, so I have to use another
-decompiler for other architectures. If you want to use always the
-same decompiler, leave `idafree_command` empty and if you don't want
-to launch any decompiler, just leave both configs empty. If you wish
-to modify the conditions to select the decompiler, you can either
-modify the `open_decompiler` function in `analyzer.py` or create
-a custom script.
+decompiler for other architectures (I have created this feature
+before the custom scripts thing, but since the decompiler is
+something that you will almost always launch, I left it to make
+it easier to use). If you want to use always the same decompiler,
+leave `idafree_command` empty and if you don't want to launch any
+decompiler, just leave both configs empty. If you wish to modify
+the conditions to select the decompiler, you can either modify
+the `open_decompiler` function in `analyzer.py` or create a
+custom script.
 
 ---
 If you have any question or feature request, feel free to ask
