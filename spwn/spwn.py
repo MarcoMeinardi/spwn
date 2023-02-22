@@ -19,6 +19,7 @@ class Spwn:
 		if not interactions_only:
 			self.create_interactions = create_interactions
 			self.no_decompiler = no_decompiler
+			self.check_dependencies()
 			self.files = FileManager(configs)
 			self.files.auto_recognize()
 
@@ -66,6 +67,28 @@ class Spwn:
 			self.scripter = Scripter(configs)
 			self.scripter.create_menu_interaction_functions()
 			self.scripter.dump_interactions()
+
+	def check_dependencies(self):
+		deps = ["patchelf", "file"]
+		semi_deps = {
+			"eu-unstrip": "elfutils",
+			"seccomp-tools": "seccomp-tools",
+			"cwe_checker": "cwe_checker (https://github.com/fkie-cad/cwe_checker)"
+		}
+
+		err = False
+		for dep in deps:
+			if not shutil.which(dep):
+				print(f"[ERROR] Please install {dep}")
+				err = True
+
+		if not configs.suppress_warnings:
+			for dep in semi_deps:
+				if not shutil.which(dep):
+					print(f"[WARNING] Please install {semi_deps[dep]}")
+
+		if err:
+			exit(1)
 
 	def create_debug_dir(self) -> None:
 		global configs

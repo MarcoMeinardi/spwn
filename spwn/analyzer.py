@@ -15,7 +15,6 @@ class Analyzer:
 		self.files = files
 
 	def pre_analysis(self, open_decompiler: bool) -> None:
-		self.check_dependencies()
 		self.run_file()
 		self.run_checksec()
 		self.print_libc_version()
@@ -27,28 +26,6 @@ class Analyzer:
 
 	def post_analysis(self) -> None:
 		self.check_and_print_seccomp()
-
-	def check_dependencies(self):
-		deps = ["patchelf", "file"]
-		semi_deps = {
-			"eu-unstrip": "elfutils",
-			"seccomp-tools": "seccomp-tools",
-			"cwe_checker": "cwe_checker (https://github.com/fkie-cad/cwe_checker)"
-		}
-
-		err = False
-		for dep in deps:
-			if not shutil.which(dep):
-				print(f"[ERROR] Please install {dep}")
-				err = True
-
-		if not self.configs.suppress_warnings:
-			for dep in semi_deps:
-				if not shutil.which(dep):
-					print(f"[WARNING] Please install {semi_deps[dep]}")
-
-		if err:
-			exit(1)
 
 	def run_file(self) -> None:
 		print(f"[*] file {self.files.binary.name}")
