@@ -138,11 +138,11 @@ class FileManager:
 	def patchelf(self) -> None:
 		if self.loader:
 			try:
-				subprocess.check_call(["patchelf", "--set-interpreter", self.loader.debug_name, "--set-rpath", self.configs.debug_dir, self.binary.debug_name])
+				subprocess.check_call(["patchelf", "--set-interpreter", f"./{self.loader.debug_name}", "--set-rpath", f"./{self.configs.debug_dir}", self.binary.debug_name])
 			except subprocess.CalledProcessError:
 				print("[!] patchelf failed")
 		else:
 			try:
-				subprocess.check_call(["patchelf", "--set-rpath", self.configs.debug_dir, self.binary.debug_name])
+				subprocess.check_call(["patchelf", "--set-rpath", f"./{self.configs.debug_dir}", self.binary.debug_name])
 			except subprocess.CalledProcessError:
 				print("[!] patchelf failed")
