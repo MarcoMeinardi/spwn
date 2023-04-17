@@ -51,7 +51,7 @@ class Scripter:
 		while True:
 			fun_name = self.ask_function_name()
 			if fun_name is None: break
-			function = InteractionFunction(menu_recvuntil, fun_name)
+			function = InteractionFunction(menu_recvuntil, fun_name, self.configs.tab)
 			function.build()
 			self.interactions += function.emit_function() + "\n"
 
@@ -61,9 +61,10 @@ class Scripter:
 
 
 class InteractionFunction:
-	def __init__(self, menu_recvuntil: str, name: str):
+	def __init__(self, menu_recvuntil: str, name: str, tab: str):
 		self.menu_recvuntil = menu_recvuntil
 		self.name = name
+		self.tab = tab
 		self.variables = []
 
 	def build(self) -> None:
@@ -94,9 +95,9 @@ class InteractionFunction:
 
 	def emit_function(self) -> str:
 		function = f'def {self.name}({", ".join(v.name for v in self.variables)}):\n'
-		function += f'\tr.sendlineafter(b"{self.menu_recvuntil}", b"{self.menu_option}")\n'
+		function += f'{self.tab}r.sendlineafter(b"{self.menu_recvuntil}", b"{self.menu_option}")\n'
 		for v in self.variables:
-			function += f"\t{v.emit_interaction()}\n"
+			function += f"{self.tab}{v.emit_interaction()}\n"
 
 		return function
 

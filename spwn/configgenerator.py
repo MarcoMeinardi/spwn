@@ -8,6 +8,7 @@ default_configs = {
 	"suppress_warnings": False,
 	"script_file": "a.py",
 	"template_file": "~/.config/spwn/template.py",
+	"tab": "\t",
 	"yara_rules": "~/.config/spwn/findcrypt3.rules",
 	"preanalysis_commands": [],
 	"postanalysis_commands": [],
