@@ -46,7 +46,7 @@ class Scripter:
 		print("-" * 50)
 
 	def create_menu_interaction_functions(self) -> None:
-		menu_recvuntil = input("Menu recvuntil > ")[:-1]
+		menu_recvuntil = input("Menu recvuntil > ")
 		if not menu_recvuntil: return
 		while True:
 			fun_name = self.ask_function_name()
@@ -56,7 +56,7 @@ class Scripter:
 			self.interactions += function.emit_function() + "\n"
 
 	def ask_function_name(self) -> str | None:
-		name = input("Function name ( Empty to end ) > ")[:-1]
+		name = input("Function name ( Empty to end ) > ")
 		return name if name else None
 
 
@@ -73,7 +73,7 @@ class InteractionFunction:
 
 	def ask_menu_option(self) -> None:
 		while True:
-			self.menu_option = input("Menu option > ")[:-1]
+			self.menu_option = input("Menu option > ")
 			if self.menu_option: break
 			print("[!] Cannot be empty")
 
