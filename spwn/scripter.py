@@ -51,7 +51,7 @@ class Scripter:
 		while True:
 			fun_name = self.ask_function_name()
 			if fun_name is None: break
-			function = InteractionFunction(menu_recvuntil, fun_name, self.configs.tab)
+			function = InteractionFunction(self.configs, menu_recvuntil, fun_name)
 			function.build()
 			self.interactions += function.emit_function() + "\n"
 
@@ -61,10 +61,10 @@ class Scripter:
 
 
 class InteractionFunction:
-	def __init__(self, menu_recvuntil: str, name: str, tab: str):
+	def __init__(self, configs: ConfigManager, menu_recvuntil: str, name: str):
+		self.configs = configs
 		self.menu_recvuntil = menu_recvuntil
 		self.name = name
-		self.tab = tab
 		self.variables = []
 
 	def build(self) -> None:
@@ -85,9 +85,9 @@ class InteractionFunction:
 		variable_interaction = utils.ask_string("Send after", can_skip=False)
 
 		if variable_type == "int":
-			self.variables.append(IntVariable(variable_name, variable_interaction))
+			self.variables.append(IntVariable(self.configs, variable_name, variable_interaction))
 		elif variable_type == "bytes":
-			self.variables.append(ByteVariable(variable_name, variable_interaction))
+			self.variables.append(ByteVariable(self.configs, variable_name, variable_interaction))
 		else:
 			assert False, "???"
 
@@ -95,36 +95,37 @@ class InteractionFunction:
 
 	def emit_function(self) -> str:
 		function = f'def {self.name}({", ".join(v.name for v in self.variables)}):\n'
-		function += f'{self.tab}r.sendlineafter(b"{self.menu_recvuntil}", b"{self.menu_option}")\n'
+		function += f'{self.configs.tab}{self.configs.pwn_process}.sendlineafter(b"{self.menu_recvuntil}", b"{self.menu_option}")\n'
 		for v in self.variables:
-			function += f"{self.tab}{v.emit_interaction()}\n"
+			function += f"{self.configs.tab}{v.emit_interaction()}\n"
 
 		return function
 
 
 class AbstractVariable:
-	def __init__(self, name, interaction):
+	def __init__(self, configs: ConfigManager, name: str, interaction: str):
+		self.configs = configs
 		self.name = name
 		self.interaction = interaction
 
 
 class IntVariable(AbstractVariable):
-	def __init__(self, name, interaction):
-		super().__init__(name, interaction)
+	def __init__(self, configs: ConfigManager, name: str, interaction: str):
+		super().__init__(configs, name, interaction)
 
 	def emit_interaction(self) -> str:
 		if self.interaction:
-			return f'r.sendlineafter(b"{self.interaction}", b"%d" % {self.name})'
+			return f'{self.configs.pwn_process}.sendlineafter(b"{self.interaction}", b"%d" % {self.name})'
 		else:
-			return f'r.sendline(b"%d" % {self.name})'
+			return f'{self.configs.pwn_process}.sendline(b"%d" % {self.name})'
 
 
 class ByteVariable(AbstractVariable):
-	def __init__(self, name, interaction):
-		super().__init__(name, interaction)
+	def __init__(self, configs: ConfigManager, name: str, interaction: str):
+		super().__init__(configs, name, interaction)
 
 	def emit_interaction(self) -> str:
 		if self.interaction:
-			return f'r.sendlineafter(b"{self.interaction}", {self.name})'
+			return f'{self.configs.pwn_process}.sendlineafter(b"{self.interaction}", {self.name})'
 		else:
-			return f'r.sendline({self.name})'
+			return f'{self.configs.pwn_process}.sendline({self.name})'
