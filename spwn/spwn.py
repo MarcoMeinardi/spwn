@@ -172,26 +172,37 @@ def main():
 	)
 
 	parser.add_argument(
-		"mode",
-		choices=["inter", "i", "ionly", "io", "nd", "nodecomp", "setup", []],
-		nargs="*",
-		help="Use these if you don't want to type '-'"
-	)
-
-	parser.add_argument(
 		"--setup",
 		action="store_true",
 		default=False,
 		help="Setup configs and quit"
 	)
 
+	parser.add_argument(
+		"others",
+		nargs=argparse.REMAINDER,
+		help="You can avoid typing the hyphens"
+	)
+
 	args = parser.parse_args(sys.argv[1:])
+	others = set(args.others)
 
-	args.ionly    |= any(arg in ["ionly", "io"] for arg in args.mode)
-	args.inter    |= any(arg in ["interactive", "inter", "i"] for arg in args.mode)
-	args.nodecomp |= any(arg in ["nodecomp", "nd"] for arg in args.mode)
+	possible_arguments = {
+		"ionly": "ionly",
+		"io": "ionly",
+		"interactive": "inter",
+		"inter": "inter",
+		"i": "inter",
+		"nodecomp": "nodecomp",
+		"nd": "nodecomp"
+	}
 
-	if args.setup or "setup" in args.mode:
+	for arg in possible_arguments:
+		if arg in others:
+			setattr(args, possible_arguments[arg], True)
+			others.remove(arg)
+
+	if args.setup or "setup" in others:
 		ConfigGenerator().maybe_create_config()
 		print("[*] Setup completed")
 	else:
