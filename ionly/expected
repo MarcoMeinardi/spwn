@@ -1,0 +1,12 @@
+def fun1(v, v):
+	r.sendlineafter(b"> ", b"1")
+	r.sendlineafter(b"v1 >", b"%d" % v)
+	r.sendlineafter(b": \", v)
+
+def fun2():
+	r.sendlineafter(b"> ", b"AAAA")
+
+def fun3(vv, vv):
+	r.sendlineafter(b"> ", b"0x1337")
+	r.sendlineafter(b":", vv)
+	r.sendlineafter(b"size:", vv)
