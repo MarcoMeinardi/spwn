@@ -62,13 +62,14 @@ class Analyzer:
 
 	def run_yara(self) -> None:
 		rules = yara.compile(self.configs.yara_rules)
-		with open(self.files.binary.name, "rb") as f:
-			matches = rules.match(data=f.read())
+		matches = rules.match(self.files.binary.name)
 
 		if matches:
 			print("[!] yara found something")
 			for match in matches:
-				print(match)
+				addresses = [instance.offset for string_match in match.strings for instance in string_match.instances]
+				print(f'[*] {match.rule} at {", ".join(map(hex, addresses))}')
+			print()
 
 	def open_decompiler(self) -> None:
 		if self.configs.idafree_command and self.files.binary.pwnfile.arch == "amd64" and self.files.binary.pwnfile.bits == 64:
