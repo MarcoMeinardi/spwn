@@ -172,7 +172,7 @@ def main():
 	)
 
 	parser.add_argument(
-		"--setup",
+		"--config",
 		action="store_true",
 		default=False,
 		help="Setup configs and quit"
@@ -202,7 +202,7 @@ def main():
 			setattr(args, possible_arguments[arg], True)
 			others.remove(arg)
 
-	if args.setup or "setup" in others:
+	if args.config or "config" in others:
 		ConfigGenerator().maybe_create_config()
 		print("[*] Setup completed")
 	else:
