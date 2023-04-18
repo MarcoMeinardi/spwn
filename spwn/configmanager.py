@@ -4,7 +4,7 @@ from typing import Any
 
 
 class ConfigManager:
-	def __init__(self, config_path: str) -> None:
+	def __init__(self, config_path: str, template: str | None):
 		config_path = os.path.expanduser(config_path)
 		configs = json.load(open(config_path))
 		for conf in configs:
@@ -12,6 +12,16 @@ class ConfigManager:
 				configs[conf] = os.path.expanduser(configs[conf])
 
 		configs["config_path"] = config_path
+
+		if template is not None:
+			template_path = os.path.dirname(configs["template_file"])
+			custom_template = os.path.join(template_path, configs["custom_template_prefix"] + template + ".py")
+			if not os.path.exists(custom_template):
+				print(f"[ERROR] Template file not found ({custom_template})")
+				exit(1)
+
+			configs["template_file"] = custom_template
+
 		super().__setattr__("configs", configs)
 
 	def __getattribute__(self, key: str) -> None:

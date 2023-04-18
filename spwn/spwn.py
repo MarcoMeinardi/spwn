@@ -202,14 +202,13 @@ def main():
 			setattr(args, possible_arguments[arg], True)
 			others.remove(arg)
 
+	ConfigGenerator().maybe_create_config()
 	if args.config or "config" in others:
-		ConfigGenerator().maybe_create_config()
 		print("[*] Setup completed")
 	else:
-		ConfigGenerator().maybe_create_config()
-
 		global configs
-		configs = ConfigManager(CONFIG_PATH)
+		template = others.pop() if others else None
+		configs = ConfigManager(CONFIG_PATH, template)
 
 		if args.ionly:
 			Spwn(interactions_only=True)

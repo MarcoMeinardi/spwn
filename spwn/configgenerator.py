@@ -5,11 +5,12 @@ import json
 
 default_configs = {
 	"debug_dir": "debug",
-	"suppress_warnings": False,
 	"script_file": "a.py",
-	"template_file": "~/.config/spwn/template.py",
 	"pwn_process": "r",
 	"tab": "\t",
+	"template_file": "~/.config/spwn/template.py",
+	"custom_template_prefix": "template_",
+	"suppress_warnings": False,
 	"yara_rules": "~/.config/spwn/findcrypt3.rules",
 	"preanalysis_commands": [],
 	"postanalysis_commands": [],
