@@ -15,7 +15,10 @@ class Scripter:
 
 	def create_script(self) -> None:
 		if self.create_interactions:
-			self.create_menu_interaction_functions()
+			if "{interactions}" not in self.template:
+				print("[!] Template does not contain {interactions} placeholder")
+			else:
+				self.create_menu_interaction_functions()
 
 		if self.files.libc:
 			self.script = self.template.format(
