@@ -181,7 +181,7 @@ def main():
 	parser.add_argument(
 		"others",
 		nargs=argparse.REMAINDER,
-		help="You can avoid typing the hyphens"
+		help="You can avoid typing the hyphens and/or specify the template"
 	)
 
 	args = parser.parse_args(sys.argv[1:])

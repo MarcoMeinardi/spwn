@@ -28,14 +28,15 @@ I wanted to customize it, so I rewrote it in python (and added
 
 ## Usage
 ```
-spwn [-h] [-i] [-io] [-nd] [--setup] [{inter,i,ionly,io,nd,nodecomp,setup,} ...]
+spwn [-h] [-i] [-io] [-nd] [--config] [{inter,i,ionly,io,nd,nodecomp,config} ...] [template]
 
 options:
   -h, --help            show this help message and exit
   -i, --inter           Interactively create interaction functions
   -io, --ionly          Create the interaction functions, without doing any analysis
   -nd, --nodecomp       Don't open the decompiler
-  --setup               Setup configs and quit
+  --config              Setup configs and quit
+  template              template to use
 ```
 
 If the files have weird names (such as the libc name not starting with
