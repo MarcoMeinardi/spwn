@@ -4,7 +4,7 @@ This repository started as a translation of
 [pwninit](https://github.com/io12/pwninit). It has been created because I
 love the utilities provided by pwninit, but I'm too lazy to learn Rust and
 I wanted to customize it, so I rewrote it in python (and added
-some more features).
+~~some~~ a lot more features).
 
 ## Features
  * Auto detect files (binary, libc, loader)
@@ -92,6 +92,19 @@ Its location should be
 `~/.local/lib/python3.{python-version}/site-packages/spwn/spwn.py`.
 Note that if you reinstall or update `spwn`, this variable will be
 overwritten.
+
+### Multiple templates
+You can have multiple templates and select which one to use from command
+line. You have to place your templates in the same directory of the base
+template (`template_file`), and name it
+`{custom_template_prefix}{name}.py`. To use it, you just have to specify
+`name` in the command line (`spwn {name}`).
+
+The whole file will be treated as a format string, so, be careful to put
+double curly brackets if they don't have to be treated as format
+specifiers (`my_set = {{1, 2, 3}}`). The actual format specifiers (which
+you have to place in single curly brackets) are: `{binary}`, `{libc}`,
+`{debug_dir}` and `{interactions}`.
 
 ### Suppress warnings
 Don't show warning messages for non installed non-vital dependencies.
