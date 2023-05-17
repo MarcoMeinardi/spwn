@@ -63,13 +63,13 @@ def ask_list(msg: str, options: list[str], can_skip: bool) -> str | None:
 
 
 def ask_string(msg: str, can_skip: bool) -> str | None:
-	resp = input(f"{msg} > ")[:-1]
+	resp = input(f"{msg} > ")
 	if resp: return resp
 	elif can_skip: return None
 
 	while True:
 		print("[!] Canno be empty")
-		resp = input("> ")[:-1]
+		resp = input("> ")
 		if resp:
 			return resp
 
