@@ -1,12 +1,28 @@
-def fun1(v, v):
+Menu recvuntil > Function name ( Empty to end ) > Menu option > Variable name ( Empty to end function ) > Variable type:
+[1] int
+[2] bytes
+> Send after > Variable name ( Empty to end function ) > Variable type:
+[1] int
+[2] bytes
+> Send after > Variable name ( Empty to end function ) > Function name ( Empty to end ) > Menu option > Variable name ( Empty to end function ) > Function name ( Empty to end ) > Menu option > Variable name ( Empty to end function ) > Variable type:
+[1] int
+[2] bytes
+> Send after > Variable name ( Empty to end function ) > Variable type:
+[1] int
+[2] bytes
+> Send after > Variable name ( Empty to end function ) > Function name ( Empty to end ) > 
+--------------------------------------------------
+def fun1(v1, v2):
 	r.sendlineafter(b"> ", b"1")
-	r.sendlineafter(b"v1 >", b"%d" % v)
-	r.sendlineafter(b": \", v)
+	r.sendlineafter(b"v1 > ", b"%d" % v1)
+	r.sendlineafter(b": \n", v2)
 
 def fun2():
 	r.sendlineafter(b"> ", b"AAAA")
 
-def fun3(vv, vv):
+def fun3(vv1, vv2):
 	r.sendlineafter(b"> ", b"0x1337")
-	r.sendlineafter(b":", vv)
-	r.sendlineafter(b"size:", vv)
+	r.sendlineafter(b": ", vv1)
+	r.sendlineafter(b"size: ", vv2)
+
+--------------------------------------------------
