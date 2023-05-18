@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 
-sys.argv.append("NOTERM")  # HACK to prevent pwntools to messup the terminal, the added arg will be removed by pwnlib
+sys.argv = ["NOTERM"] + sys.argv  # HACK to prevent pwntools to messup the terminal, the added arg will be removed by pwnlib
 
 from spwn.filemanager import FileManager
 from spwn.analyzer import Analyzer
