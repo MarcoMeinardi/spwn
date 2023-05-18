@@ -19,7 +19,7 @@ class FileManager:
 		self.loader = None
 		self.other_binaries = []
 
-	def auto_recognize(self) -> None:
+	def auto_recognize(self, maybe_has_debug: bool) -> None:
 		binaries = []
 		libcs = []
 		loaders = []
@@ -49,9 +49,9 @@ class FileManager:
 		else:
 			self.ask_all(files)
 			return
+		del files[files.index(self.binary.name)]
 
 		# Libc
-		del files[files.index(self.binary.name)]
 		if len(libcs) == 1:
 			self.libc = Libc(libcs[0])
 		else:
@@ -65,9 +65,16 @@ class FileManager:
 			self.libc = Libc(self.libc)
 
 			other_libraries = libcs
+		del files[files.index(self.libc.name)]
+
+		if maybe_has_debug:
+			if os.path.exists(self.configs.debug_dir):
+				if os.path.exists(os.path.join(self.configs.debug_dir, self.binary.name)):
+					self.binary.debug_name = os.path.join(self.configs.debug_dir, self.binary.name)
+				if os.path.exists(os.path.join(self.configs.debug_dir, "libc.so.6")):
+					self.libc.debug_name = os.path.join(self.configs.debug_dir, self.libc.name)
 
 		# Loader
-		del files[files.index(self.libc.name)]
 		if len(loaders) == 1:
 			self.loader = Loader(loaders[0])
 		else:

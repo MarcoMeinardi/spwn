@@ -17,13 +17,14 @@ CONFIG_PATH = os.path.expanduser("~/.config/spwn/config.json")
 
 
 class Spwn:
-	def __init__(self, create_interactions: bool = False, interactions_only: bool = False, no_decompiler: bool = True):
+	def __init__(self, create_interactions: bool, no_decompiler: bool, script_only: bool, interactions_only: bool):
 		if not interactions_only:
-			self.create_interactions = create_interactions
+			self.create_interactions = create_interactions or script_only
 			self.no_decompiler = no_decompiler
+			self.script_only = script_only
 			self.check_dependencies()
 			self.files = FileManager(configs)
-			self.files.auto_recognize()
+			self.files.auto_recognize(self.script_only)
 
 			print("[*] Binary:", self.files.binary.name)
 			if self.files.libc: print("[*] Libc:  ", self.files.libc.name)
@@ -39,27 +40,28 @@ class Spwn:
 
 	def run(self) -> None:
 		if self.files:
-			analyzer = Analyzer(configs, self.files)
-			custom_analyzer = CustomAnalyzer(configs, self.files)
-			analyzer.pre_analysis(open_decompiler=not self.no_decompiler)
-			custom_analyzer.pre_analysis()
-			print()
+			if not self.script_only:
+				analyzer = Analyzer(configs, self.files)
+				custom_analyzer = CustomAnalyzer(configs, self.files)
+				analyzer.pre_analysis(open_decompiler=not self.no_decompiler)
+				custom_analyzer.pre_analysis()
+				print()
 
-			if self.files.libc:
-				self.create_debug_dir()
-				self.populate_debug_dir()
-				self.files.libc.maybe_unstrip()
+				if self.files.libc:
+					self.create_debug_dir()
+					self.populate_debug_dir()
+					self.files.libc.maybe_unstrip()
 
-				if self.files.loader is None:
-					self.files.get_loader()
-				if self.files.loader is not None:
-					self.files.loader.set_executable()
+					if self.files.loader is None:
+						self.files.get_loader()
+					if self.files.loader is not None:
+						self.files.loader.set_executable()
 
-				self.files.patchelf()
+					self.files.patchelf()
 
-			self.files.binary.set_executable()
-			analyzer.post_analysis()
-			custom_analyzer.post_analysis()
+				self.files.binary.set_executable()
+				analyzer.post_analysis()
+				custom_analyzer.post_analysis()
 
 			self.scripter = Scripter(configs, self.files, create_interactions=self.create_interactions)
 			self.scripter.create_script()
@@ -158,6 +160,13 @@ def main():
 	)
 
 	parser.add_argument(
+		"-so", "--sonly",
+		action="store_true",
+		default=False,
+		help="Create the interaction script without analyzing the binary"
+	)
+
+	parser.add_argument(
 		"-io", "--ionly",
 		action="store_true",
 		default=False,
@@ -189,8 +198,10 @@ def main():
 
 	possible_arguments = {
 		"ionly": "ionly",
+		"so": "sonly",
+		"sonly": "sonly",
 		"io": "ionly",
-		"interactive": "inter",
+		"interactions": "inter",
 		"inter": "inter",
 		"i": "inter",
 		"nodecomp": "nodecomp",
@@ -210,7 +221,4 @@ def main():
 		template = others.pop() if others else None
 		configs = ConfigManager(CONFIG_PATH, template)
 
-		if args.ionly:
-			Spwn(interactions_only=True)
-		else:
-			Spwn(create_interactions=args.inter, no_decompiler=args.nodecomp)
+		Spwn(create_interactions=args.inter, no_decompiler=args.nodecomp, script_only=args.sonly, interactions_only=args.ionly)
