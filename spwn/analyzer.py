@@ -72,7 +72,7 @@ class Analyzer:
 			print()
 
 	def open_decompiler(self) -> None:
-		if self.configs.idafree_command and self.files.binary.pwnfile.arch == "amd64" and self.files.binary.pwnfile.bits == 64:
+		if self.configs.idafree_command and self.files.binary.pwnfile.arch in ["amd64", "i386"]:
 			subprocess.Popen(self.configs.idafree_command.format(binary=self.files.binary.name), shell=True, start_new_session=True)
 		elif self.configs.decompiler_command:
 			subprocess.Popen(self.configs.decompiler_command.format(binary=self.files.binary.name), shell=True, start_new_session=True)

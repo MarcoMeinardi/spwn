@@ -29,7 +29,7 @@ class CustomAnalyzer:
 			print(f"[*] {command}")
 			if timeout:
 				try:
-					# Use `exec command``, otherwise, because of `shell=True`, the process wouldn't be killed on timeout
+					# Use `exec command`, otherwise, because of `shell=True`, the process won't get killed on timeout
 					p = subprocess.run(f"exec {command}", shell=True, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="latin-1")
 					print(p.stdout)
 				except subprocess.TimeoutExpired:

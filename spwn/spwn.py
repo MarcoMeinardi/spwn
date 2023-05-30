@@ -72,7 +72,7 @@ class Spwn:
 			self.scripter.create_menu_interaction_functions()
 			self.scripter.dump_interactions()
 
-	def check_dependencies(self):
+	def check_dependencies(self) -> None:
 		deps = ["patchelf", "file"]
 		semi_deps = {
 			"eu-unstrip": "elfutils",
