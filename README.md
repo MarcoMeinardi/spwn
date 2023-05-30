@@ -155,9 +155,9 @@ def main(files):
 
 ### Decompiler
 For the decompilers commands, the syntax is the same of the pre and
-post analysis commands. I created an apposite config, rather than
+post analysis commands. I created a special config, rather than
 putting it in a pre analysis command, because I use IDA freeware
-and it can decompile only x86-64 binaries, so I have to use another
+and it can decompile only x86/x86_64 binaries, so I have to use another
 decompiler for other architectures (I have created this feature
 before the custom scripts thing, but since the decompiler is
 something that you will almost always launch, I left it to make
