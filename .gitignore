@@ -1,5 +1,5 @@
 .ctags*
 .gitignore
 */a.py
-*/debug
+*/debug_dir
 */.gdb_history
