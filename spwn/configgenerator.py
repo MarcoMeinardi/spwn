@@ -4,7 +4,7 @@ import json
 
 
 default_configs = {
-	"debug_dir": "debug",
+	"debug_dir": "debug_dir",
 	"script_file": "a.py",
 	"pwn_process": "r",
 	"tab": "\t",
