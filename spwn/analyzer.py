@@ -97,8 +97,7 @@ class Analyzer:
 
 	def run_cwe_checker(self) -> None:
 		if not shutil.which("cwe_checker"):
-			if not self.configs.suppress_warnings:
-				print("[ERROR] cwe_checker not found, either it is not installed or is not in your $PATH")
+			pass
 		else:
 			print(f"[*] cwe_checker {self.files.binary.name} (press Ctrl+C to stop)")
 			try:
