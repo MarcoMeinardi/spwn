@@ -103,5 +103,7 @@ class Analyzer:
 			print(f"[*] cwe_checker {self.files.binary.name} (press Ctrl+C to stop)")
 			try:
 				print(subprocess.check_output(["cwe_checker", self.files.binary.name], encoding="latin1"))
+			except Exception as e:
+				print(f"[ERROR] cwe_checker: {e}")
 			except KeyboardInterrupt:
 				pass
